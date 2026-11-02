@@ -26,7 +26,7 @@ export function createTelegramService(env = process.env, { fetchImpl = fetch, no
     if (saved.version !== 1 || !saved.sessions || typeof saved.sessions !== 'object' || Array.isArray(saved.sessions)) throw new Error('Invalid reminders database');
     db = saved;
   }
-  let username = null;
+  let username = /^[A-Za-z0-9_]{5,32}$/.test(env.TELEGRAM_BOT_USERNAME || '') ? env.TELEGRAM_BOT_USERNAME : null;
   let running = false;
   let timer = null;
   let ticking = false;

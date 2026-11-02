@@ -247,11 +247,6 @@ main > * + * { margin-top:20px; }
 .view-switch { display:flex; padding:3px; border-radius:13px; background:var(--surface-2); box-shadow:var(--inset); }
 .view-button { padding:7px 10px; border:0; min-height:36px; border-radius:10px; background:transparent; color:var(--muted); font-size:11px; font-weight:700; }
 .view-button.is-active { background:var(--surface-solid); box-shadow:var(--raised); color:var(--text); }
-.board-actions { position:relative; }
-.board-actions > summary { display:flex; align-items:center; justify-content:center; cursor:pointer; min-height:44px; padding:8px 15px; border:1px solid var(--line); border-radius:13px; background:var(--surface); box-shadow:var(--raised); color:var(--muted); font-size:12px; font-weight:700; list-style:none; }
-.board-actions > summary::-webkit-details-marker { display:none; }
-.board-actions-menu { position:absolute; top:calc(100% + 9px); right:0; z-index:10; width:190px; padding:8px; display:grid; gap:8px; border:1px solid var(--line); border-radius:17px; background:var(--surface-solid); box-shadow:var(--shadow); }
-.board-actions-menu .btn-ghost { width:100%; min-height:44px; }
 .work-area .kpi .label { font-size:11px; }
 .work-area .kpi-foot { font-size:10px; }
 .work-area .ci-text { font-size:13px; }

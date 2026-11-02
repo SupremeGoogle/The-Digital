@@ -24,7 +24,7 @@ const defaultTime = task => {
   return due > Date.now() ? due : Date.now() + 30 * 60_000;
 };
 
-export function initReminders({ mount = document.querySelector('.board-actions-menu') || document.querySelector('.toolbar-right') } = {}) {
+export function initReminders({ mount = document.querySelector('.toolbar-right') } = {}) {
   if (!mount || document.querySelector('.telegram-settings')) return;
   const base = endpoint();
   let token = null;
@@ -41,7 +41,7 @@ export function initReminders({ mount = document.querySelector('.board-actions-m
   const trigger = document.createElement('button');
   trigger.type = 'button'; trigger.className = 'btn-ghost telegram-settings';
   trigger.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 11 18-7-4 16-6-5-4 3 1-6 9-5-6 8"/></svg><span>Telegram-напоминания</span>';
-  mount.prepend(trigger);
+  mount.append(trigger);
   const dialog = document.createElement('dialog');
   dialog.className = 'telegram-dialog';
   dialog.setAttribute('aria-labelledby', 'telegram-heading');

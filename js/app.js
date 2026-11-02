@@ -2,7 +2,7 @@ import * as store from './store.js';
 import { parseQuick, dueInfo } from './parse.js';
 import { initBoard, renderBoard } from './board.js';
 import { initDrawer, open as openDrawer, close as closeDrawer } from './drawer.js';
-import { initDashboard, renderDashboard, plural } from './dashboard.js';
+import { initDashboard, renderDashboard } from './dashboard.js';
 import { initIntro } from './intro.js';
 import { initAssistant } from './assistant.js';
 import { initTaskEffects } from './task-effects.js';
@@ -150,17 +150,6 @@ $('#search').addEventListener('input', (e) => {
   filters.query = e.target.value;
   renderBoard(filters);
   calendar.render(filters);
-});
-
-$('#clearDone').addEventListener('click', () => {
-  const ids = store.byStatus('done').map((t) => t.id);
-  if (ids.length) deleteTasks(ids, `Удалено ${ids.length} ${plural(ids.length, 'готовая задача', 'готовые задачи', 'готовых задач')}`);
-});
-
-$('#demoBtn').addEventListener('click', () => {
-  const count = store.addDemoTasks();
-  announce(count ? `Добавлено примеров: ${count}` : 'Примерные задачи уже добавлены');
-  $('#demoBtn').textContent = count ? `Добавлено: ${count}` : 'Примеры уже в списке';
 });
 
 function setLayout(layout) {
