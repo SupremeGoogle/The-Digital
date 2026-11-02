@@ -2,8 +2,6 @@
 
 Список задач на HTML, CSS и JavaScript (ES-модули, без сборки). Небесно-голубой интерфейс, канбан, список и календарь, статистика, небольшой 3D-обзор и живой помощник. На телефоне 3D скрыт и не загружается.
 
-Основная версия находится в `main`. Предыдущий неоновый дизайн сохранён в ветке [`codex/archive-neon-dashboard-2026-11-02`](https://github.com/SupremeGoogle/The-Digital/tree/codex/archive-neon-dashboard-2026-11-02).
-
 **Сайт:** https://supremegoogle.github.io/The-Digital/ · **Репозиторий:** https://github.com/SupremeGoogle/The-Digital · **Промо-ролик:** [`promo-video/renders/digital-todo-promo.mp4`](promo-video/renders/digital-todo-promo.mp4)
 
 > Канбан с drag & drop · умный ввод · список и календарь · Telegram-напоминания · помощник Диди (AI через Router AI) · 3D-обзор · дашборд · тёмная тема · заставка · демо-данные
