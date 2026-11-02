@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="ru" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Taskflow — список задач</title>
+  <meta name="description" content="Простой и аккуратный список задач: добавление, отметка, удаление и сохранение после перезагрузки.">
+  <meta name="theme-color" content="#05050a">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Unbounded:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script>
+    // Тема ставится до отрисовки, чтобы не было вспышки
+    try {
+      var t = localStorage.getItem('taskflow.theme');
+      if (t) document.documentElement.dataset.theme = t;
+    } catch (e) {}
+  </script>
+</head>
+<body>
+  <div class="aurora" aria-hidden="true"><span></span><span></span><span></span></div>
+
+  <div class="app">
+    <header class="topbar">
+      <a class="brand" href="./" aria-label="Taskflow">
+        <span class="mark" aria-hidden="true"></span>
+        <span class="wordmark">taskflow</span>
+      </a>
+      <div class="topbar-actions">
+        <span class="kbd-hint" aria-hidden="true">Новая задача <kbd>/</kbd></span>
+        <button class="icon-btn" id="themeBtn" type="button" aria-label="Сменить тему">
+          <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
+          <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero card">
+        <div class="hero-text">
+          <p class="eyebrow" id="today"></p>
+          <h1>Мои задачи</h1>
+          <p class="hero-sub" id="heroSub">Запишите, что нужно сделать, и отмечайте по ходу дня.</p>
+        </div>
+        <div class="ring" id="ring" role="img" aria-label="Прогресс 0%">
+          <svg viewBox="0 0 120 120" aria-hidden="true">
+            <defs>
+              <linearGradient id="spectrum" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#2ee6ff"/>
+                <stop offset=".35" stop-color="#9b6bff"/>
+                <stop offset=".7" stop-color="#ff4fa3"/>
+                <stop offset="1" stop-color="#ff8a3d"/>
+              </linearGradient>
+            </defs>
+            <circle class="ring-track" cx="60" cy="60" r="50"/>
+            <circle class="ring-bar" id="ringBar" cx="60" cy="60" r="50"/>
+          </svg>
+          <div class="ring-label"><strong id="ringPct">0%</strong><span>готово</span></div>
+        </div>
+      </section>
+
+      <section class="stats" aria-label="Статистика">
+        <div class="stat card tone-cyan"><span class="stat-name">Всего</span><strong id="statAll">0</strong></div>
+        <div class="stat card tone-orange"><span class="stat-name">В работе</span><strong id="statActive">0</strong></div>
+        <div class="stat card tone-lime"><span class="stat-name">Готово</span><strong id="statDone">0</strong></div>
+      </section>
+
+      <form class="composer card" id="composer" autocomplete="off">
+        <label class="sr-only" for="taskInput">Новая задача</label>
+        <div class="composer-row">
+          <input id="taskInput" type="text" maxlength="200" placeholder="Что нужно сделать?">
+          <button class="btn-primary" type="submit">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+            <span>Добавить</span>
+          </button>
+        </div>
+        <fieldset class="tags" aria-label="Метка">
+          <legend class="sr-only">Метка</legend>
+          <label class="tag-opt"><input type="radio" name="tag" value="work" checked><span class="chip tag-work">Работа</span></label>
+          <label class="tag-opt"><input type="radio" name="tag" value="home"><span class="chip tag-home">Личное</span></label>
+          <label class="tag-opt"><input type="radio" name="tag" value="study"><span class="chip tag-study">Учёба</span></label>
+          <label class="tag-opt"><input type="radio" name="tag" value="urgent"><span class="chip tag-urgent">Срочно</span></label>
+        </fieldset>
+      </form>
+
+      <section class="board card" aria-labelledby="listTitle">
+        <div class="board-head">
+          <h2 id="listTitle" class="sr-only">Список задач</h2>
+          <div class="pills" role="tablist" aria-label="Фильтр">
+            <button class="pill is-active" role="tab" aria-selected="true" data-filter="all">Все <span class="count" id="cntAll">0</span></button>
+            <button class="pill" role="tab" aria-selected="false" data-filter="active">Активные <span class="count" id="cntActive">0</span></button>
+            <button class="pill" role="tab" aria-selected="false" data-filter="done">Готовые <span class="count" id="cntDone">0</span></button>
+          </div>
+          <button class="btn-ghost" id="clearDone" type="button">Очистить готовые</button>
+        </div>
+
+        <ul class="list" id="list" aria-live="polite"></ul>
+
+        <div class="empty" id="empty" hidden>
+          <div class="empty-art" aria-hidden="true">
+            <span></span><span></span><span></span>
+          </div>
+          <p class="empty-title" id="emptyTitle">Пока пусто</p>
+          <p class="empty-sub" id="emptySub">Добавьте первую задачу в поле выше.</p>
+        </div>
+      </section>
+
+      <p class="hint">Двойной клик по задаче — редактировать. Всё сохраняется в браузере.</p>
+    </main>
+
+    <footer class="footer">
+      Сделано с помощью <a href="https://claude.com/claude-code" target="_blank" rel="noopener">Claude Code</a>
+    </footer>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden>
+    <span id="toastText">Задача удалена</span>
+    <button type="button" id="toastUndo">Отменить</button>
+  </div>
+
+  <template id="itemTpl">
+    <li class="item">
+      <label class="check">
+        <input type="checkbox">
+        <span class="box" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>
+      </label>
+      <div class="item-body">
+        <p class="item-text"></p>
+        <div class="item-meta"><span class="chip"></span><time></time></div>
+      </div>
+      <button class="del" type="button">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4.5h6V7M6.5 7l1 13h9l1-13M10 11v5M14 11v5"/></svg>
+      </button>
+    </li>
+  </template>
+
+  <script src="app.js"></script>
+</body>
+</html>
