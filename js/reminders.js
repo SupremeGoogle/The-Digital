@@ -106,7 +106,7 @@ export function initReminders({ mount = document.querySelector('.toolbar-right')
         if (selectionChanged) persist();
         state.textContent = failed ? 'Telegram подключён. Некоторые напоминания не удалось доставить — выберите для них новое время.' : 'Telegram подключён. Напоминания придут в ваш личный чат с ботом.';
         link.hidden = true; clearTimeout(poll); pairing = null;
-      } else state.textContent = status.pending ? 'Откройте бота и нажмите «Запустить», чтобы подтвердить подключение.' : 'Подключите свой Telegram и разрешите боту отправлять напоминания.';
+      } else state.textContent = status.awaitingCommand ? 'Ссылка подтверждена. Отправьте боту команду /todo, чтобы включить напоминания.' : status.pending ? 'Откройте бота по ссылке, нажмите «Запустить», затем отправьте /todo.' : 'Подключите свой Telegram и разрешите боту отправлять напоминания.';
       paint();
       if (pairing && !connected && Date.now() < pairing.expiresAt) poll = setTimeout(refresh, 3000);
       else if (pairing && !connected) { link.hidden = true; pairing = null; state.textContent = 'Ссылка истекла. Подключите Telegram ещё раз.'; }
@@ -139,7 +139,7 @@ export function initReminders({ mount = document.querySelector('.toolbar-right')
       pairing = await api('/link', {}); token = pairing.clientToken;
       try { localStorage.setItem(TOKEN_KEY, token); } catch {}
       link.href = pairing.linkUrl; link.hidden = false;
-      state.textContent = 'Откройте Telegram по ссылке ниже и нажмите «Запустить». Ссылка действует 5 минут.';
+      state.textContent = 'Откройте Telegram по ссылке, нажмите «Запустить», затем отправьте /todo. Ссылка действует 5 минут.';
       clearTimeout(poll); poll = setTimeout(refresh, 2000);
     } catch { state.textContent = 'Подключение пока недоступно. Попробуйте позже.'; }
     finally { connect.disabled = !configured; }

@@ -162,6 +162,7 @@ export function createTelegramService(env = process.env, { fetchImpl = fetch, no
       if (req.headers.authorization && !session) { send(res, 401, { error: 'invalid_session' }); return true; }
       send(res, 200, { configured, ready: Boolean(username), connected: Boolean(session?.chatId),
         pending: Boolean(session?.pairExpires > now() && !session?.chatId),
+        ...(session?.pendingChatId && session.pendingChatExpires > now() && !session.chatId ? { awaitingCommand: true } : {}),
         reminders: session?.reminders?.map(({ id, at, state }) => ({ id, at, state })) || [] });
       return true;
     }
@@ -216,20 +217,43 @@ export function createTelegramService(env = process.env, { fetchImpl = fetch, no
   async function consumePairing(update, allowLegacy) {
     const message = update.message;
     const text = typeof message?.text === 'string' ? message.text : '';
+    const todo = /^\/todo(?:@([A-Za-z0-9_]+))?\s*$/i.exec(text);
+    if (todo) {
+      if (message.chat?.type !== 'private' || !Number.isSafeInteger(message.chat.id)) return false;
+      if (todo[1] && (!username || todo[1].toLowerCase() !== username.toLowerCase())) return false;
+      const chatId = String(message.chat.id);
+      const pending = Object.values(db.sessions).find(item => !item.chatId && item.pendingChatId === chatId && item.pendingChatExpires > now());
+      if (pending) {
+        pending.chatId = chatId;
+        delete pending.pendingChatId;
+        delete pending.pendingChatExpires;
+        delete pending.pairHash;
+        delete pending.pairExpires;
+        persist();
+        try { await telegram('sendMessage', { chat_id: chatId, text: 'Digital To-Do подключён. Выберите задачи и время напоминания на сайте. Отключить уведомления можно там же.' }); } catch {}
+        return true;
+      }
+      if (Object.values(db.sessions).some(item => item.chatId === chatId)) {
+        try { await telegram('sendMessage', { chat_id: chatId, text: 'Digital To-Do уже подключён. Настроить напоминания можно на сайте.' }); } catch {}
+        return true;
+      }
+      // An unrelated chat's /todo command still belongs to the previous application.
+      return false;
+    }
     const own = /^\/start(?:@[A-Za-z0-9_]+)?\s+dt_/.test(text);
     const match = /^\/start(?:@[A-Za-z0-9_]+)?\s+dt_([A-Za-z0-9_-]{43})\s*$/.exec(text) ||
       (allowLegacy ? /^\/start(?:@[A-Za-z0-9_]+)? ([A-Za-z0-9_-]{43})$/.exec(text) : null);
     if (!own && !match) return false;
     // Expired or malformed To-Do links are still ours and must not trigger the old bot.
-    if (!match || message.chat?.type !== 'private') return true;
+    if (!match || message.chat?.type !== 'private' || !Number.isSafeInteger(message.chat.id)) return true;
     const digest = hash(match[1]);
     const session = Object.values(db.sessions).find(item => !item.chatId && item.pairHash === digest && item.pairExpires > now());
     if (!session) return true;
-    session.chatId = String(message.chat.id);
+    session.pendingChatId = String(message.chat.id);
+    session.pendingChatExpires = session.pairExpires;
     delete session.pairHash;
-    delete session.pairExpires;
     persist();
-    try { await telegram('sendMessage', { chat_id: session.chatId, text: 'Digital To-Do подключён. Выберите задачи и время напоминания на сайте. Отключить уведомления можно там же.' }); } catch {}
+    try { await telegram('sendMessage', { chat_id: session.pendingChatId, text: 'Для включения напоминаний Digital To-Do отправьте /todo. После этого вернитесь на сайт и выберите задачи.' }); } catch {}
     return true;
   }
   async function processUpdates() {

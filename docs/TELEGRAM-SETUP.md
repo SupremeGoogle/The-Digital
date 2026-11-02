@@ -6,7 +6,7 @@
 
 **Текущий статус:** серверные напоминания настроены в режиме общего webhook. Digital To-Do обрабатывает только свои ссылки `/start dt_<nonce>`, а остальные Telegram updates передаёт прежнему приложению с сохранением исходного JSON и его успешного ответа. Прежний сервис продолжает работать; параллельный getUpdates не запускается. Адрес прежнего webhook и секреты хранятся только на сервере. Доставка напоминаний в личный чат пользователя ещё не подтверждена.
 
-Пользователь **сам** открывает «Telegram-напоминания», нажимает «Подключить», переходит по одноразовой ссылке и нажимает Start в личном Telegram-чате. Успешный getMe, регистрация общего webhook или готовый API не заменяют личную привязку и проверку реальной доставки.
+Пользователь **сам** открывает «Telegram-напоминания», нажимает «Подключить», переходит по одноразовой ссылке и нажимает Start и отправляет `/todo` в личном Telegram-чате. Успешный getMe, регистрация общего webhook или готовый API не заменяют личную привязку и проверку реальной доставки.
 
 There is no bot token in the browser, repository, or frontend build. Store it only in `/etc/digital-todo/assistant.env` on the VPS, outside the checkout and releases. Give the server administrator the token through a secure channel, not a public chat or commit.
 

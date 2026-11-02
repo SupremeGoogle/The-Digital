@@ -49,6 +49,11 @@ async function harness(t, configured = true, webhook = false) {
     const nonce = new URL(response.value.linkUrl).searchParams.get('start');
     updates.push({ update_id: 1, message: { text: `/start ${nonce}`, chat: { id: 42, type: 'private' } } });
     await service.processUpdates();
+    const pending = await request('/status', { token: response.value.clientToken });
+    assert.equal(pending.value.connected, false);
+    assert.equal(pending.value.awaitingCommand, true);
+    updates.push({ update_id: 2, message: { text: '/todo', chat: { id: 42, type: 'private' } } });
+    await service.processUpdates();
     return response.value.clientToken;
   }
   return { service, request, pair, updates, messages, env, dbPath, fakeFetch, forwarded, methods,
@@ -90,9 +95,9 @@ test('one-time pairing, hashed browser credential, isolated authorization', asyn
   const file = readFileSync(h.dbPath, 'utf8');
   assert.equal(file.includes(token), false);
   assert.equal(file.includes(h.env.TELEGRAM_BOT_TOKEN), false);
-  assert.equal(h.messages.length, 1);
+  assert.equal(h.messages.length, 2);
   await h.service.processUpdates();
-  assert.equal(h.messages.length, 1);
+  assert.equal(h.messages.length, 2);
 });
 
 test('remind once, survives restart, replacing selection cancels completed/deleted tasks', async t => {
@@ -157,6 +162,9 @@ test('polling keeps accepting existing legacy 43-character pairing links', async
   assert.equal(nonce.length, 43);
   h.updates.push({ update_id: 1, message: { text: `/start ${nonce}`, chat: { id: 42, type: 'private' } } });
   await h.service.processUpdates();
+  assert.equal((await h.request('/status', { token: response.value.clientToken })).value.connected, false);
+  h.updates.push({ update_id: 2, message: { text: '/todo', chat: { id: 42, type: 'private' } } });
+  await h.service.processUpdates();
   assert.equal((await h.request('/status', { token: response.value.clientToken })).value.connected, true);
 });
 
@@ -184,9 +192,15 @@ test('webhook intercepts only namespaced To-Do links, including invalid or expir
   assert.match(payload, /^dt_[A-Za-z0-9_-]{43}$/);
   const own = { update_id: 1, message: { text: `/start ${payload}`, chat: { id: 42, type: 'private' } } };
   assert.equal((await h.request('/webhook', { body: own, headers })).status, 200);
+  const pending = (await h.request('/status', { token: response.value.clientToken })).value;
+  assert.equal(pending.connected, false);
+  assert.equal(pending.pending, true);
+  assert.equal(pending.awaitingCommand, true);
+  const activate = { update_id: 2, message: { text: '/todo@DigitalToDoTestBot', chat: { id: 42, type: 'private' } } };
+  assert.equal((await h.request('/webhook', { body: activate, headers })).status, 200);
   assert.equal((await h.request('/status', { token: response.value.clientToken })).value.connected, true);
   assert.equal((await h.request('/webhook', { body: own, headers })).status, 200);
-  assert.equal(h.messages.length, 1);
+  assert.equal(h.messages.length, 2);
   assert.equal(h.forwarded.length, 0);
   const invalid = { update_id: 2, message: { text: '/start dt_invalid', chat: { id: 42, type: 'private' } } };
   assert.equal((await h.request('/webhook', { body: invalid, headers })).status, 200);
@@ -229,4 +243,48 @@ test('legacy Bot API webhook replies pass through to Telegram unchanged', async 
   const response = await h.request('/webhook', { body: { update_id: 1, message: { text: '/start old_app' } }, headers });
   assert.equal(response.status, 200);
   assert.deepEqual(response.value, reply);
+});
+
+test('/todo belongs to To-Do only after its own link, in the matching private chat', async t => {
+  const h = await harness(t, true, true);
+  const headers = { 'X-Telegram-Bot-Api-Secret-Token': h.env.TELEGRAM_WEBHOOK_SECRET };
+  const command = (text, id = 42, type = 'private') => ({ update_id: 100, message: { text, chat: { id, type } } });
+  await h.request('/webhook', { body: command('/todo'), headers });
+  assert.equal(h.forwarded.length, 1);
+  const linked = await h.request('/link', { body: {} });
+  const payload = new URL(linked.value.linkUrl).searchParams.get('start');
+  await h.request('/webhook', { body: command(`/start ${payload}`), headers });
+  assert.equal((await h.request('/status', { token: linked.value.clientToken })).value.connected, false);
+  assert.match(h.messages.at(-1).text, /отправьте \/todo/);
+  await h.request('/webhook', { body: command('/todo', 99), headers });
+  await h.request('/webhook', { body: command('/todo@AnotherBot'), headers });
+  await h.request('/webhook', { body: command('/todo', 42, 'group'), headers });
+  assert.equal(h.forwarded.length, 4);
+  assert.equal((await h.request('/status', { token: linked.value.clientToken })).value.connected, false);
+  await h.request('/webhook', { body: command('/todo@DigitalToDoTestBot'), headers });
+  const activated = (await h.request('/status', { token: linked.value.clientToken })).value;
+  assert.equal(activated.connected, true);
+  assert.equal(activated.pending, false);
+  assert.equal('awaitingCommand' in activated, false);
+  await h.request('/webhook', { body: command('/todo'), headers });
+  assert.match(h.messages.at(-1).text, /уже подключён/);
+  assert.equal(h.forwarded.length, 4);
+  assert(h.forwarded.every(item => !item.body.includes('dt_')));
+});
+
+test('/todo cannot activate an expired pending link and is forwarded to the old app', async t => {
+  const h = await harness(t, true, true);
+  const headers = { 'X-Telegram-Bot-Api-Secret-Token': h.env.TELEGRAM_WEBHOOK_SECRET };
+  const linked = await h.request('/link', { body: {} });
+  const payload = new URL(linked.value.linkUrl).searchParams.get('start');
+  await h.request('/webhook', { body: { update_id: 1, message: { text: `/start ${payload}`, chat: { id: 42, type: 'private' } } }, headers });
+  h.advance(6 * 60_000);
+  const todo = { update_id: 2, message: { text: '/todo', chat: { id: 42, type: 'private' } } };
+  await h.request('/webhook', { body: todo, headers });
+  assert.equal(h.forwarded.length, 1);
+  assert.deepEqual(JSON.parse(h.forwarded[0].body), todo);
+  const status = (await h.request('/status', { token: linked.value.clientToken })).value;
+  assert.equal(status.connected, false);
+  assert.equal(status.pending, false);
+  assert.equal((await h.request('/reminders', { token: linked.value.clientToken, body: { reminders: [] } })).status, 409);
 });
