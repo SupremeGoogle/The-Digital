@@ -6,27 +6,31 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { createTelegramService } from './telegram.mjs';
 
-async function harness(t, configured = true, webhook = false) {
+async function harness(t, configured = true, webhook = false, extra = {}) {
   const directory = mkdtempSync(join(tmpdir(), 'digital-telegram-test-'));
   const dbPath = join(directory, 'reminders.json');
   let clock = Date.now();
   const updates = [];
   const messages = [];
   const env = { REMINDERS_DB: dbPath, ...(configured ? { TELEGRAM_BOT_TOKEN: '123456:TEST_ONLY_NOT_A_REAL_TOKEN' } : {}),
-    ...(webhook ? { TELEGRAM_WEBHOOK_SECRET: 'new_test_secret', TELEGRAM_FORWARD_WEBHOOK_URL: 'https://previous-app.example/private-webhook', TELEGRAM_FORWARD_WEBHOOK_SECRET: 'previous_test_secret' } : {}) };
+    ...(webhook ? { TELEGRAM_WEBHOOK_SECRET: 'new_test_secret', TELEGRAM_FORWARD_WEBHOOK_URL: 'https://previous-app.example/private-webhook', TELEGRAM_FORWARD_WEBHOOK_SECRET: 'previous_test_secret' } : {}), ...extra };
   let calls = 0;
   let forwardingOkay = true;
   let forwardingReply = '';
   const forwarded = [];
   const methods = [];
+  const urls = [];
+  let telegramFailures = 0;
   const fakeFetch = async (url, options) => {
     calls++;
+    urls.push(url);
     if (new URL(url).hostname === 'previous-app.example') {
       forwarded.push({ body: options.body, headers: options.headers });
       return { ok: forwardingOkay, text: async () => forwardingReply };
     }
     const method = url.split('/').at(-1);
     methods.push(method);
+    if (telegramFailures > 0 && method === 'sendMessage') { telegramFailures--; throw new TypeError('fetch failed'); }
     const data = JSON.parse(options.body);
     const result = method === 'getMe' ? { username: 'DigitalToDoTestBot' } : method === 'getUpdates' ? updates.splice(0) : { message_id: messages.push(data) };
     return { ok: true, json: async () => ({ ok: true, result }) };
@@ -56,6 +60,7 @@ async function harness(t, configured = true, webhook = false) {
   return { service, request, pair, updates, messages, env, dbPath, fakeFetch, forwarded, methods,
     setForwardOkay: value => { forwardingOkay = value; },
     setForwardReply: value => { forwardingReply = value; },
+    failTelegram: count => { telegramFailures = count; }, urls,
     advance: ms => { clock += ms; }, now: () => clock, calls: () => calls };
 }
 
@@ -286,4 +291,73 @@ test('/todo cannot activate an expired pending link and is forwarded to the old 
   assert.equal(status.connected, false);
   assert.equal(status.pending, false);
   assert.equal((await h.request('/reminders', { token: linked.value.clientToken, body: { reminders: [] } })).status, 409);
+});
+
+const relayEnv = { TELEGRAM_MODE: 'polling', TELEGRAM_API_BASE: 'https://relay.example/private_key' };
+
+test('polling relay mode pulls updates through the API base and forwards the previous app\'s updates', async t => {
+  const h = await harness(t, true, true, relayEnv);
+  assert.equal(h.service.mode, 'polling');
+  // start() would spin the getUpdates loop against the instant fake; /link exercises getMe instead.
+  assert.equal((await h.request('/link', { body: {} })).status, 200);
+  assert(h.urls.every(url => url.startsWith('https://relay.example/private_key/bot') || new URL(url).hostname === 'previous-app.example'));
+  const ordinary = { update_id: 7, message: { text: 'Привет старому приложению', chat: { id: 42, type: 'private' } } };
+  h.setForwardReply(JSON.stringify({ method: 'sendMessage', chat_id: 42, text: 'Ответ прежнего приложения' }));
+  h.updates.push(ordinary);
+  await h.service.processUpdates();
+  assert.deepEqual(JSON.parse(h.forwarded[0].body), ordinary);
+  assert.equal(h.messages.at(-1).text, 'Ответ прежнего приложения');
+  // Our own command is answered here and never reaches the previous app.
+  const token = await h.pair();
+  assert.equal((await h.request('/status', { token })).value.connected, true);
+  assert.match(h.messages.at(-1).text, /подключён/);
+  assert.equal(h.forwarded.length, 1);
+});
+
+test('polling relay mode retries a failed forward instead of dropping the update', async t => {
+  const h = await harness(t, true, true, relayEnv);
+  const update = { update_id: 30, edited_message: { text: 'keep me' } };
+  h.setForwardOkay(false);
+  h.updates.push(update);
+  await assert.rejects(h.service.processUpdates());
+  assert.equal(JSON.parse(readFileSync(h.dbPath, 'utf8')).offset, 0);
+  h.setForwardOkay(true);
+  h.updates.push(update);
+  await h.service.processUpdates();
+  assert.equal(h.forwarded.length, 2);
+  assert.equal(JSON.parse(readFileSync(h.dbPath, 'utf8')).offset, 31);
+});
+
+test('an expired or reused /todo code gets a clear answer instead of silence', async t => {
+  const h = await harness(t);
+  const response = await h.request('/link', { body: {} });
+  h.advance(6 * 60_000);
+  h.updates.push({ update_id: 1, message: { text: response.value.commandText, chat: { id: 42, type: 'private' } } });
+  await h.service.processUpdates();
+  assert.match(h.messages.at(-1).text, /устарел или уже использован/);
+  const token = await h.pair();
+  h.updates.push({ update_id: 3, message: { text: '/todo dt_' + 'a'.repeat(43), chat: { id: 42, type: 'private' } } });
+  await h.service.processUpdates();
+  assert.equal((await h.request('/status', { token })).value.connected, true);
+  assert.match(h.messages.at(-1).text, /уже подключён/);
+});
+
+test('a reminder that fails on a flaky network is retried later, not marked failed', async t => {
+  const h = await harness(t);
+  const token = await h.pair();
+  const at = h.now() + 60_000;
+  assert.equal((await h.request('/reminders', { token, body: { reminders: [{ id: 'task1', title: 'Позвонить', at }] } })).status, 200);
+  h.advance(61_000);
+  h.failTelegram(3);
+  await h.service.tick();
+  let state = (await h.request('/status', { token })).value.reminders[0].state;
+  assert.equal(state, 'pending');
+  h.advance(30_000);
+  await h.service.tick();
+  assert.equal(h.messages.filter(message => message.text.startsWith('Напоминание')).length, 0);
+  h.advance(31_000);
+  await h.service.tick();
+  state = (await h.request('/status', { token })).value.reminders[0].state;
+  assert.equal(state, 'sent');
+  assert.equal(h.messages.filter(message => message.text.startsWith('Напоминание')).length, 1);
 });

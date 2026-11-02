@@ -46,6 +46,19 @@ Create `/var/lib/digital-todo` owned by the service account, mode `0700`; the mo
 
 In standalone polling mode, the bot must not have a webhook or another `getUpdates` consumer. For a bot already serving another application, use shared webhook mode below instead. Run **one instance** with one database writer. After setting the token, restart the service. `getMe` determines the real bot username; the browser does not guess it. If Telegram is unavailable on startup, pressing Connect retries initialization. No real Telegram messages are sent by the automated tests.
 
+## Hosts that Telegram cannot reach (polling through a relay)
+
+On the production VPS in Russia both directions to Telegram are unreliable: Telegram's webhook calls time out and direct `api.telegram.org` requests mostly fail. In that case set:
+
+```dotenv
+TELEGRAM_MODE=polling
+TELEGRAM_API_BASE=https://<relay-host>/<relay-key>
+```
+
+The service then deletes no data and needs no inbound connection: it pulls updates with `getUpdates` through the relay, answers To-Do commands itself, and forwards every other update to `TELEGRAM_FORWARD_WEBHOOK_URL` exactly as the webhook mode does. If the previous application replies with a Bot API call in its webhook response, that call is executed through the relay. A failed forward does not advance the offset, so the update is retried. Telegram's webhook must be removed (`deleteWebhook` without dropping pending updates), because Telegram allows only one consumer. `TELEGRAM_ALLOWED_UPDATES` keeps the previous application's subscription (default: message, edited_message, channel_post, edited_channel_post).
+
+Short Bot API calls are retried twice on network errors. A reminder that cannot be delivered stays pending and is retried with backoff for up to six hours before it is marked failed. An expired or reused `/todo` code now gets an explanatory reply instead of silence.
+
 ## Sharing a bot with an existing application
 
 Set these server-only environment variables before switching Telegram's webhook:

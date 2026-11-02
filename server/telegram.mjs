@@ -12,13 +12,23 @@ export function createTelegramService(env = process.env, { fetchImpl = fetch, no
   const token = env.TELEGRAM_BOT_TOKEN || '';
   const configured = Boolean(token && !/REPLACE_|YOUR_|^</.test(token));
   const webhookSecret = env.TELEGRAM_WEBHOOK_SECRET || '';
-  const webhookMode = Boolean(webhookSecret);
+  // Polling is for hosts that Telegram cannot reach reliably: updates are pulled through
+  // TELEGRAM_API_BASE and the previous application's updates are forwarded from here.
+  const pollingMode = env.TELEGRAM_MODE === 'polling';
+  const webhookMode = Boolean(webhookSecret) && !pollingMode;
+  const apiBase = new URL(env.TELEGRAM_API_BASE || 'https://api.telegram.org');
+  if (apiBase.protocol !== 'https:' || apiBase.username || apiBase.password || apiBase.search || apiBase.hash) throw new Error('Telegram API base must be a plain HTTPS URL');
+  const apiPrefix = apiBase.href.replace(/\/+$/, '');
   const forwardSecret = env.TELEGRAM_FORWARD_WEBHOOK_SECRET || '';
   let forwardUrl = null;
-  if (webhookMode && env.TELEGRAM_FORWARD_WEBHOOK_URL) {
+  if ((webhookMode || pollingMode) && env.TELEGRAM_FORWARD_WEBHOOK_URL) {
     forwardUrl = new URL(env.TELEGRAM_FORWARD_WEBHOOK_URL);
     if (forwardUrl.protocol !== 'https:' || forwardUrl.username || forwardUrl.password || forwardUrl.hash) throw new Error('Telegram forwarding URL must use HTTPS without URL credentials or fragment');
   }
+  // A shared bot keeps the previous application's subscription; a standalone bot needs only messages.
+  const allowedUpdates = forwardUrl
+    ? (env.TELEGRAM_ALLOWED_UPDATES || 'message,edited_message,channel_post,edited_channel_post').split(',').map(item => item.trim()).filter(Boolean)
+    : ['message'];
   const dbPath = env.REMINDERS_DB || join(homedir(), '.digital-todo', 'telegram-reminders.json');
   let db = { version: 1, offset: 0, sessions: {} };
   if (configured && existsSync(dbPath)) {
@@ -28,6 +38,7 @@ export function createTelegramService(env = process.env, { fetchImpl = fetch, no
   }
   let username = /^[A-Za-z0-9_]{5,32}$/.test(env.TELEGRAM_BOT_USERNAME || '') ? env.TELEGRAM_BOT_USERNAME : null;
   let running = false;
+  let closed = false;
   let timer = null;
   let ticking = false;
   const controllers = new Set();
@@ -41,19 +52,47 @@ export function createTelegramService(env = process.env, { fetchImpl = fetch, no
     renameSync(temporary, dbPath);
     chmodSync(dbPath, 0o600);
   }
-  async function telegram(method, data = {}, longPoll = false) {
-    if (!configured) throw new Error('telegram_not_configured');
+  async function telegramOnce(method, data, longPoll) {
     const controller = new AbortController();
     controllers.add(controller);
-    const timeout = setTimeout(() => controller.abort(), longPoll ? 28_000 : 10_000);
+    const timeout = setTimeout(() => controller.abort(), longPoll ? 35_000 : 10_000);
+    let response;
     try {
-      const response = await fetchImpl(`https://api.telegram.org/bot${token}/${method}`, {
+      response = await fetchImpl(`${apiPrefix}/bot${token}/${method}`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data), signal: controller.signal,
       });
+    } catch (error) {
+      clearTimeout(timeout); controllers.delete(controller);
+      const failure = new Error('telegram_network');
+      failure.retry = true;
+      failure.detail = error?.cause?.code || error?.name || 'fetch_failed';
+      throw failure;
+    }
+    try {
       const result = await response.json();
-      if (!response.ok || !result.ok) throw new Error('telegram_unavailable');
+      if (!response.ok || !result.ok) {
+        const failure = new Error('telegram_unavailable');
+        // Telegram asks to retry on flood control and its own server errors, not on bad requests.
+        failure.retry = response.status === 429 || response.status >= 500;
+        failure.detail = `${response.status} ${String(result?.description || '').slice(0, 120)}`;
+        throw failure;
+      }
       return result.result;
     } finally { clearTimeout(timeout); controllers.delete(controller); }
+  }
+  async function telegram(method, data = {}, longPoll = false) {
+    if (!configured) throw new Error('telegram_not_configured');
+    // Long polling is already retried by its loop; short calls get two quick extra attempts.
+    for (let attempt = 1; ; attempt++) {
+      try { return await telegramOnce(method, data, longPoll); }
+      catch (error) {
+        if (longPoll || !error.retry || closed || attempt >= 3) {
+          if (!closed) console.warn(`telegram ${method} failed: ${error.message} ${error.detail || ''}`.trim());
+          throw error;
+        }
+        await new Promise(resolve => { const wait = setTimeout(resolve, 700 * attempt); wait.unref?.(); });
+      }
+    }
   }
   async function identify() {
     if (username) return username;
@@ -231,13 +270,17 @@ export function createTelegramService(env = process.env, { fetchImpl = fetch, no
       persist();
       return handled(chatId, 'Digital To-Do подключён. Выберите задачи и время напоминания на сайте. Отключить уведомления можно там же.');
     };
+    const stale = chatId => Object.values(db.sessions).some(item => item.chatId === chatId)
+      ? handled(chatId, 'Digital To-Do уже подключён. Настроить напоминания можно на сайте.')
+      : handled(chatId, 'Этот код подключения устарел или уже использован. На сайте нажмите «Подключить Telegram» ещё раз и отправьте новую команду.');
     const direct = /^\/todo(?:@([A-Za-z0-9_]+))?\s+dt_([A-Za-z0-9_-]{43})\s*$/i.exec(text);
     if (direct) {
       if (direct[1] && (!username || direct[1].toLowerCase() !== username.toLowerCase())) return false;
       if (message.chat?.type !== 'private' || !Number.isSafeInteger(message.chat.id)) return handled();
       const digest = hash(direct[2]);
+      const chatId = String(message.chat.id);
       const session = Object.values(db.sessions).find(item => !item.chatId && item.pairHash === digest && item.pairExpires > now());
-      return session ? bind(session, String(message.chat.id)) : handled();
+      return session ? bind(session, chatId) : stale(chatId);
     }
     const todo = /^\/todo(?:@([A-Za-z0-9_]+))?\s*$/i.exec(text);
     if (todo) {
@@ -257,28 +300,43 @@ export function createTelegramService(env = process.env, { fetchImpl = fetch, no
       (allowLegacy ? /^\/start(?:@[A-Za-z0-9_]+)? ([A-Za-z0-9_-]{43})$/.exec(text) : null);
     if (!own && !match) return false;
     // Expired or malformed To-Do links are still ours and must not trigger the old bot.
-    if (!match || message.chat?.type !== 'private' || !Number.isSafeInteger(message.chat.id)) return handled();
+    if (message.chat?.type !== 'private' || !Number.isSafeInteger(message.chat.id)) return handled();
+    if (!match) return stale(String(message.chat.id));
     const digest = hash(match[1]);
     const session = Object.values(db.sessions).find(item => !item.chatId && item.pairHash === digest && item.pairExpires > now());
-    if (!session) return handled();
+    if (!session) return stale(String(message.chat.id));
     session.pendingChatId = String(message.chat.id);
     session.pendingChatExpires = session.pairExpires;
     delete session.pairHash;
     persist();
     return handled(session.pendingChatId, 'Для включения напоминаний Digital To-Do отправьте /todo. После этого вернитесь на сайт и выберите задачи.');
   }
+  async function reply(call) {
+    const { method, ...payload } = call;
+    try { await telegram(method, payload); } catch {}
+  }
+  // The previous application may answer with a Bot API call in its webhook response.
+  // In polling mode nobody else would execute it, so it is performed here.
+  async function relayLegacyReply(raw) {
+    let call;
+    try { call = JSON.parse(raw); } catch { return; }
+    if (call && typeof call === 'object' && !Array.isArray(call) && typeof call.method === 'string' && /^[A-Za-z]{3,40}$/.test(call.method)) await reply(call);
+  }
   async function processUpdates() {
     if (webhookMode) return;
-    const updates = await telegram('getUpdates', { offset: db.offset, timeout: 20, allowed_updates: ['message'] }, true);
-    for (const update of updates) {
-      db.offset = Math.max(db.offset, update.update_id + 1);
-      const owned = await consumePairing(update, true);
-      if (owned?.reply) {
-        const { method, ...payload } = owned.reply;
-        try { await telegram(method, payload); } catch {}
+    const updates = await telegram('getUpdates', { offset: db.offset, timeout: 20, allowed_updates: allowedUpdates }, true);
+    try {
+      for (const update of updates) {
+        // Standalone bots keep accepting old unprefixed links; a shared bot leaves them to the previous app.
+        const owned = await consumePairing(update, !forwardUrl);
+        if (owned?.reply) await reply(owned.reply);
+        else if (!owned && forwardUrl) {
+          // A failed forward stops here without advancing the offset, so the update is retried.
+          await relayLegacyReply(await forwardUpdate(JSON.stringify(update)));
+        }
+        db.offset = Math.max(db.offset, update.update_id + 1);
       }
-    }
-    if (updates.length) persist();
+    } finally { if (updates.length) persist(); }
   }
   async function tick() {
     if (!configured || ticking) return;
@@ -287,13 +345,24 @@ export function createTelegramService(env = process.env, { fetchImpl = fetch, no
       for (const session of Object.values(db.sessions)) {
         if (!session.chatId) continue;
         for (const reminder of session.reminders) {
-          if (reminder.state !== 'pending' || reminder.at > now()) continue;
+          if (reminder.state !== 'pending' || reminder.at > now() || reminder.retryAt > now()) continue;
           // Persist the attempt before sending: a crash must not duplicate a reminder.
           reminder.state = 'sending'; persist();
           try {
             await telegram('sendMessage', { chat_id: session.chatId, text: `Напоминание Digital To-Do\n\n${reminder.title}` });
             reminder.state = 'sent';
-          } catch { reminder.state = 'failed'; }
+            delete reminder.retryAt; delete reminder.attempts;
+          } catch {
+            // A flaky network should delay a reminder, not lose it: back off for up to six hours.
+            reminder.attempts = (reminder.attempts || 0) + 1;
+            if (reminder.attempts >= 8 || now() - reminder.at > 6 * 3600_000) {
+              reminder.state = 'failed';
+              delete reminder.retryAt;
+            } else {
+              reminder.state = 'pending';
+              reminder.retryAt = now() + Math.min(60_000 * 2 ** (reminder.attempts - 1), 30 * 60_000);
+            }
+          }
           persist();
         }
       }
@@ -315,8 +384,8 @@ export function createTelegramService(env = process.env, { fetchImpl = fetch, no
     return true;
   }
   function close() {
-    running = false; clearInterval(timer);
+    running = false; closed = true; clearInterval(timer);
     controllers.forEach(controller => controller.abort());
   }
-  return { handle, start, close, tick, processUpdates, configured };
+  return { handle, start, close, tick, processUpdates, configured, mode: webhookMode ? 'webhook' : 'polling' };
 }

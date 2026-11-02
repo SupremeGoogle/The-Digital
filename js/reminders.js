@@ -91,7 +91,7 @@ export function initReminders({ mount = document.querySelector('.toolbar-right')
       headers: { ...(value === undefined ? {} : { 'Content-Type': 'application/json' }), ...(token ? { Authorization: `Bearer ${token}` } : {}) },
       ...(value === undefined ? {} : { body: JSON.stringify(value) }), signal: AbortSignal.timeout(12_000) });
     if (response.status === 401) { token = null; connected = false; try { localStorage.removeItem(TOKEN_KEY); } catch {} }
-    if (!response.ok) throw new Error('unavailable');
+    if (!response.ok) { const error = new Error('unavailable'); error.status = response.status; throw error; }
     return response.json();
   }
   function paint() {
@@ -119,6 +119,8 @@ export function initReminders({ mount = document.querySelector('.toolbar-right')
   }
   async function refresh() {
     const requestedToken = token;
+    // Focus, the confirm button and the poll timer all call refresh: keep a single poll loop.
+    clearTimeout(poll);
     try {
       const status = await api('/status');
       if (requestedToken !== token) return;
@@ -144,7 +146,16 @@ export function initReminders({ mount = document.querySelector('.toolbar-right')
       paint();
       if (pairing && !connected && Date.now() < pairing.expiresAt) poll = setTimeout(refresh, 3000);
       else if (pairing && !connected) { link.hidden = true; commandBox.hidden = true; commandInput.value = ''; pairing = null; state.textContent = 'Ссылка истекла. Подключите Telegram ещё раз.'; }
-    } catch { state.textContent = base ? 'Сейчас не получается связаться с напоминаниями. Попробуйте позже.' : 'Telegram ещё не подключён к сайту. Ваши задачи продолжают работать.'; configured = false; paint(); }
+    } catch (error) {
+      // A rate limit or a network blip during pairing is temporary: wait and check again.
+      if (pairing && Date.now() < pairing.expiresAt && (error.status === 429 || !error.status || error.status >= 500)) {
+        poll = setTimeout(refresh, 6000);
+        return;
+      }
+      state.textContent = base ? 'Сейчас не получается связаться с напоминаниями. Попробуйте позже.' : 'Telegram ещё не подключён к сайту. Ваши задачи продолжают работать.';
+      if (error.status !== 429) configured = false;
+      paint();
+    }
   }
   function remindersFor(selection) {
     // Keep existing due-but-not-yet-delivered reminders until the server scheduler claims them.
