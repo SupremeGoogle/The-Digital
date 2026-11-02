@@ -1,0 +1,8 @@
+.env
+renders/*
+!renders/digital-todo-promo.mp4
+node_modules/
+.hyperframes/
+scripts/.measure.html
+assets/vo2/*.mp3
+.thumbnails/

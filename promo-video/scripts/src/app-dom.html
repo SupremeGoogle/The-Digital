@@ -1,0 +1,435 @@
+<div class="app">
+    <header class="topbar">
+      <a class="brand" href="./" aria-label="Digital To-Do — главная">
+        <span class="mark digital-mark" aria-hidden="true"><img src="favicon.svg" alt="" width="48" height="48"></span>
+        <span class="wordmark digital-wordmark">Digital <span>To-Do</span></span>
+      </a>
+      <div class="greeting">
+        <span class="eyebrow" id="today">понедельник, 2 ноября</span>
+        <h1>Мой день</h1>
+      </div>
+      <label class="search">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+        <span class="sr-only">Поиск</span>
+        <input id="search" type="search" placeholder="Поиск задач" autocomplete="off">
+        <kbd>Ctrl K</kbd>
+      </label>
+      <button class="icon-btn" id="themeBtn" type="button" aria-label="Сменить тему">
+        <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
+        <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"></path></svg>
+      </button>
+    </header>
+
+<main class="workspace">
+<div class="work-area">
+<div class="side">
+          <div class="progress card tilt">
+            <div class="progress-head">
+              <span class="label">Прогресс</span>
+              <span class="label" id="progressNote">8 из 18</span>
+            </div>
+            <strong class="progress-pct"><span id="progressPct" data-value="44">44</span>%</strong>
+            <div class="bar"><span id="progressBar" style="width: 44%;"></span></div>
+            <p class="progress-sub" id="progressSub">Осталось 10 задач</p>
+          </div>
+          <div class="kpis">
+            <div class="kpi card tilt tone-cyan"><span class="kpi-art art-stack" aria-hidden="true"><i></i><i></i><i></i></span><span class="label">Всего задач</span><strong data-kpi="all" data-value="18">18</strong><span class="kpi-foot">в вашем списке</span></div>
+            <div class="kpi card tilt tone-orange"><span class="kpi-art art-ring" aria-hidden="true"></span><span class="label">В работе</span><strong data-kpi="doing" data-value="4">4</strong><span class="kpi-foot" id="kpiDoingFoot">сейчас</span></div>
+            <div class="kpi card tilt tone-lime"><span class="kpi-art art-check" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m5 12 4.5 4.5L19 7"></path></svg></span><span class="label">Сделано</span><strong data-kpi="today" data-value="2">2</strong><span class="kpi-foot">сегодня</span></div>
+            <div class="kpi card tilt tone-pink alert"><span class="kpi-art art-clock" aria-hidden="true"></span><span class="label">Просрочено</span><strong data-kpi="overdue" data-value="1">1</strong><span class="kpi-foot">ждут внимания</span></div>
+          </div>
+        </div>
+<form class="composer card" id="composer" autocomplete="off">
+        <div class="composer-title"><h2>Что сделаем дальше?</h2><span>Одно маленькое дело — ещё один шаг вперёд</span></div>
+        <div class="composer-row">
+          <label class="sr-only" for="taskInput">Новая задача</label>
+          <input id="taskInput" type="text" maxlength="200" placeholder="Например, подготовить презентацию #работа завтра">
+          <button class="btn-primary" type="submit">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+            <span>Добавить</span>
+          </button>
+        </div>
+        <details class="composer-advanced"><summary>Метка, приоритет и срок</summary><div class="composer-opts">
+          <fieldset class="seg tags" aria-label="Метка">
+            <legend class="sr-only">Метка</legend>
+            <label class="tag-opt"><input type="radio" name="tag" value="work" checked=""><span class="chip tag-work">Работа</span></label>
+            <label class="tag-opt"><input type="radio" name="tag" value="home"><span class="chip tag-home">Личное</span></label>
+            <label class="tag-opt"><input type="radio" name="tag" value="study"><span class="chip tag-study">Учёба</span></label>
+            <label class="tag-opt"><input type="radio" name="tag" value="urgent"><span class="chip tag-urgent">Срочно</span></label>
+          </fieldset>
+          <fieldset class="seg prio" aria-label="Приоритет">
+            <legend class="sr-only">Приоритет</legend>
+            <label><input type="radio" name="prio" value="low"><span><i class="flag p-low"></i>Низкий</span></label>
+            <label><input type="radio" name="prio" value="med" checked=""><span><i class="flag p-med"></i>Средний</span></label>
+            <label><input type="radio" name="prio" value="high"><span><i class="flag p-high"></i>Высокий</span></label>
+          </fieldset>
+          <label class="date-field">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="3"></rect><path d="M3.5 10h17M8 3v4M16 3v4"></path></svg>
+            <span class="sr-only">Срок</span>
+            <input type="date" id="dueInput">
+          </label>
+        </div>
+        <p class="syntax">Быстрый ввод: <code>#личное</code> метка, <code>!</code> высокий приоритет, <code>~</code> низкий, <code>сегодня</code> <code>завтра</code> <code>в пт</code> <code>25.12</code> срок</p>
+</details><div class="parse-preview" id="parsePreview" aria-live="polite"></div>
+      </form>
+<div class="toolbar">
+        <div class="pills" id="tagFilter" role="group" aria-label="Фильтр по метке">
+          <button class="pill is-active" data-tag="all">Все</button>
+          <button class="pill" data-tag="work"><i class="dot tag-work"></i>Работа</button>
+          <button class="pill" data-tag="home"><i class="dot tag-home"></i>Личное</button>
+          <button class="pill" data-tag="study"><i class="dot tag-study"></i>Учёба</button>
+          <button class="pill" data-tag="urgent"><i class="dot tag-urgent"></i>Срочно</button>
+        </div>
+        <div class="toolbar-right"><div class="view-switch" role="group" aria-label="Вид задач"><button class="view-button is-active" type="button" data-layout="board" aria-pressed="true">Доска</button><button class="view-button" type="button" data-layout="list" aria-pressed="false">Список</button></div><details class="board-actions"><summary>Ещё</summary><div class="board-actions-menu"><button class="btn-ghost" id="demoBtn" type="button" title="Добавить примерные задачи, сохранив ваши">Добавить примеры</button>
+          <button class="btn-ghost" id="clearDone" type="button">Очистить готовые</button>
+        </div></details></div>
+      </div>
+<section class="board" id="board" aria-label="Канбан">
+        <div class="col" data-status="todo">
+          <header class="col-head"><i class="col-dot"></i><h3>Запланировано</h3><span class="count" data-count="todo">6</span></header>
+          <ul class="col-list" data-status="todo"><li class="card-item" tabindex="0" data-id="digitaltodo-demo-v1-01" data-status="todo" aria-label="Подготовить презентацию проекта, К выполнению, метка Работа, Высокий приоритет, срок Завтра, подзадачи 1 из 3" style="--c: var(--tag-work);">
+      <span class="ci-accent" aria-hidden="true"></span>
+      <div class="ci-top">
+        <button class="ci-start" type="button" aria-label="Взять в работу: Подготовить презентацию проекта"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"></path></svg></button>
+        <label class="check" hidden="">
+          <input type="checkbox" tabindex="-1">
+          <span class="box" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>
+        </label>
+        <p class="ci-text">Подготовить презентацию проекта</p>
+        <i class="flag p-high" aria-hidden="true" title="Высокий приоритет"></i>
+      </div>
+      <div class="ci-meta">
+        <span class="chip tag-work">Работа</span>
+        <span class="due" data-state="soon">Завтра</span>
+        <span class="subs" style="--p: 33.33333333333333%;"><i class="sub-ring"></i><span>1/3</span></span>
+      </div>
+    </li><li class="card-item" tabindex="0" data-id="digitaltodo-demo-v1-02" data-status="todo" aria-label="Обновить портфолио, К выполнению, метка Работа, Средний приоритет, срок 5 нояб" style="--c: var(--tag-work);">
+      <span class="ci-accent" aria-hidden="true"></span>
+      <div class="ci-top">
+        <button class="ci-start" type="button" aria-label="Взять в работу: Обновить портфолио"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"></path></svg></button>
+        <label class="check" hidden="">
+          <input type="checkbox" tabindex="-1">
+          <span class="box" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>
+        </label>
+        <p class="ci-text">Обновить портфолио</p>
+        <i class="flag p-med" aria-hidden="true" title="Средний приоритет"></i>
+      </div>
+      <div class="ci-meta">
+        <span class="chip tag-work">Работа</span>
+        <span class="due" data-state="later">5 нояб</span>
+        <span class="subs" hidden=""><i class="sub-ring"></i><span></span></span>
+      </div>
+    </li><li class="card-item" tabindex="0" data-id="digitaltodo-demo-v1-03" data-status="todo" aria-label="Прочитать главу про замыкания, К выполнению, метка Учёба, Средний приоритет, срок 4 нояб, подзадачи 0 из 3" style="--c: var(--tag-study);">
+      <span class="ci-accent" aria-hidden="true"></span>
+      <div class="ci-top">
+        <button class="ci-start" type="button" aria-label="Взять в работу: Прочитать главу про замыкания"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"></path></svg></button>
+        <label class="check" hidden="">
+          <input type="checkbox" tabindex="-1">
+          <span class="box" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>
+        </label>
+        <p class="ci-text">Прочитать главу про замыкания</p>
+        <i class="flag p-med" aria-hidden="true" title="Средний приоритет"></i>
+      </div>
+      <div class="ci-meta">
+        <span class="chip tag-study">Учёба</span>
+        <span class="due" data-state="soon">4 нояб</span>
+        <span class="subs" style="--p: 0%;"><i class="sub-ring"></i><span>0/3</span></span>
+      </div>
+    </li><li class="card-item" tabindex="0" data-id="digitaltodo-demo-v1-04" data-status="todo" aria-label="Запланировать тренировку, К выполнению, метка Личное, Низкий приоритет, срок Завтра" style="--c: var(--tag-home);">
+      <span class="ci-accent" aria-hidden="true"></span>
+      <div class="ci-top">
+        <button class="ci-start" type="button" aria-label="Взять в работу: Запланировать тренировку"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"></path></svg></button>
+        <label class="check" hidden="">
+          <input type="checkbox" tabindex="-1">
+          <span class="box" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>
+        </label>
+        <p class="ci-text">Запланировать тренировку</p>
+        <i class="flag p-low" aria-hidden="true" title="Низкий приоритет"></i>
+      </div>
+      <div class="ci-meta">
+        <span class="chip tag-home">Личное</span>
+        <span class="due" data-state="soon">Завтра</span>
+        <span class="subs" hidden=""><i class="sub-ring"></i><span></span></span>
+      </div>
+    </li><li class="card-item" tabindex="0" data-id="digitaltodo-demo-v1-05" data-status="todo" aria-label="Разобрать входящие письма, К выполнению, метка Срочно, Высокий приоритет, срок Вчера" style="--c: var(--tag-urgent);">
+      <span class="ci-accent" aria-hidden="true"></span>
+      <div class="ci-top">
+        <button class="ci-start" type="button" aria-label="Взять в работу: Разобрать входящие письма"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"></path></svg></button>
+        <label class="check" hidden="">
+          <input type="checkbox" tabindex="-1">
+          <span class="box" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>
+        </label>
+        <p class="ci-text">Разобрать входящие письма</p>
+        <i class="flag p-high" aria-hidden="true" title="Высокий приоритет"></i>
+      </div>
+      <div class="ci-meta">
+        <span class="chip tag-urgent">Срочно</span>
+        <span class="due" data-state="overdue">Вчера</span>
+        <span class="subs" hidden=""><i class="sub-ring"></i><span></span></span>
+      </div>
+    </li><li class="card-item" tabindex="0" data-id="digitaltodo-demo-v1-06" data-status="todo" aria-label="Составить список покупок, К выполнению, метка Личное, Низкий приоритет, срок 4 нояб, подзадачи 1 из 3" style="--c: var(--tag-home);">
+      <span class="ci-accent" aria-hidden="true"></span>
+      <div class="ci-top">
+        <button class="ci-start" type="button" aria-label="Взять в работу: Составить список покупок"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"></path></svg></button>
+        <label class="check" hidden="">
+          <input type="checkbox" tabindex="-1">
+          <span class="box" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>
+        </label>
+        <p class="ci-text">Составить список покупок</p>
+        <i class="flag p-low" aria-hidden="true" title="Низкий приоритет"></i>
+      </div>
+      <div class="ci-meta">
+        <span class="chip tag-home">Личное</span>
+        <span class="due" data-state="soon">4 нояб</span>
+        <span class="subs" style="--p: 33.33333333333333%;"><i class="sub-ring"></i><span>1/3</span></span>
+      </div>
+    </li></ul>
+        </div>
+        <div class="col" data-status="doing">
+          <header class="col-head"><i class="col-dot"></i><h3>В работе</h3><span class="count" data-count="doing">4</span></header>
+          <ul class="col-list" data-status="doing"><li class="card-item" tabindex="0" data-id="digitaltodo-demo-v1-07" data-status="doing" aria-label="Проверить мобильную версию, В работе, метка Работа, Высокий приоритет, срок Сегодня, подзадачи 1 из 3" style="--c: var(--tag-work);">
+      <span class="ci-accent" aria-hidden="true"></span>
+      <div class="ci-top">
+        <button class="ci-start" type="button" aria-label="Взять в работу: Проверить мобильную версию" hidden=""><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"></path></svg></button>
+        <label class="check">
+          <input type="checkbox" tabindex="-1">
+          <span class="box" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>
+        </label>
+        <p class="ci-text">Проверить мобильную версию</p>
+        <i class="flag p-high" aria-hidden="true" title="Высокий приоритет"></i>
+      </div>
+      <div class="ci-meta">
+        <span class="chip tag-work">Работа</span>
+        <span class="due" data-state="today">Сегодня</span>
+        <span class="subs" style="--p: 33.33333333333333%;"><i class="sub-ring"></i><span>1/3</span></span>
+      </div>
+    </li><li class="card-item" tabindex="0" data-id="digitaltodo-demo-v1-08" data-status="doing" aria-label="Отправить тестовое задание, В работе, метка Срочно, Высокий приоритет, срок Сегодня, подзадачи 2 из 3" style="--c: var(--tag-urgent);">
+      <span class="ci-accent" aria-hidden="true"></span>
+      <div class="ci-top">
+        <button class="ci-start" type="button" aria-label="Взять в работу: Отправить тестовое задание" hidden=""><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"></path></svg></button>
+        <label class="check">
+          <input type="checkbox" tabindex="-1">
+          <span class="box" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>
+        </label>
+        <p class="ci-text">Отправить тестовое задание</p>
+        <i class="flag p-high" aria-hidden="true" title="Высокий приоритет"></i>
+      </div>
+      <div class="ci-meta">
+        <span class="chip tag-urgent">Срочно</span>
+        <span class="due" data-state="today">Сегодня</span>
+        <span class="subs" style="--p: 66.66666666666666%;"><i class="sub-ring"></i><span>2/3</span></span>
+      </div>
+    </li><li class="card-item" tabindex="0" data-id="digitaltodo-demo-v1-09" data-status="doing" aria-label="Изучить анимации интерфейса, В работе, метка Учёба, Средний приоритет, срок 5 нояб, подзадачи 1 из 2" style="--c: var(--tag-study);">
+      <span class="ci-accent" aria-hidden="true"></span>
+      <div class="ci-top">
+        <button class="ci-start" type="button" aria-label="Взять в работу: Изучить анимации интерфейса" hidden=""><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"></path></svg></button>
+        <label class="check">
+          <input type="checkbox" tabindex="-1">
+          <span class="box" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>
+        </label>
+        <p class="ci-text">Изучить анимации интерфейса</p>
+        <i class="flag p-med" aria-hidden="true" title="Средний приоритет"></i>
+      </div>
+      <div class="ci-meta">
+        <span class="chip tag-study">Учёба</span>
+        <span class="due" data-state="later">5 нояб</span>
+        <span class="subs" style="--p: 50%;"><i class="sub-ring"></i><span>1/2</span></span>
+      </div>
+    </li><li class="card-item" tabindex="0" data-id="digitaltodo-demo-v1-10" data-status="doing" aria-label="Спланировать выходные, В работе, метка Личное, Низкий приоритет, срок 7 нояб" style="--c: var(--tag-home);">
+      <span class="ci-accent" aria-hidden="true"></span>
+      <div class="ci-top">
+        <button class="ci-start" type="button" aria-label="Взять в работу: Спланировать выходные" hidden=""><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"></path></svg></button>
+        <label class="check">
+          <input type="checkbox" tabindex="-1">
+          <span class="box" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>
+        </label>
+        <p class="ci-text">Спланировать выходные</p>
+        <i class="flag p-low" aria-hidden="true" title="Низкий приоритет"></i>
+      </div>
+      <div class="ci-meta">
+        <span class="chip tag-home">Личное</span>
+        <span class="due" data-state="later">7 нояб</span>
+        <span class="subs" hidden=""><i class="sub-ring"></i><span></span></span>
+      </div>
+    </li></ul>
+        </div>
+        <div class="col" data-status="done">
+          <header class="col-head"><i class="col-dot"></i><h3>Готово</h3><span class="count" data-count="done">8</span></header>
+          <ul class="col-list" data-status="done"><li class="card-item done" tabindex="0" data-id="digitaltodo-demo-v1-11" data-status="done" aria-label="Собрать референсы интерфейса, Готово, метка Работа, Средний приоритет, подзадачи 2 из 2" style="--c: var(--tag-work);">
+      <span class="ci-accent" aria-hidden="true"></span>
+      <div class="ci-top">
+        <button class="ci-start" type="button" aria-label="Взять в работу: Собрать референсы интерфейса" hidden=""><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"></path></svg></button>
+        <label class="check">
+          <input type="checkbox" tabindex="-1">
+          <span class="box" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>
+        </label>
+        <p class="ci-text">Собрать референсы интерфейса</p>
+        <i class="flag p-med" aria-hidden="true" title="Средний приоритет"></i>
+      </div>
+      <div class="ci-meta">
+        <span class="chip tag-work">Работа</span>
+        <span class="due" hidden=""></span>
+        <span class="subs" style="--p: 100%;"><i class="sub-ring"></i><span>2/2</span></span>
+      </div>
+    </li><li class="card-item done" tabindex="0" data-id="digitaltodo-demo-v1-12" data-status="done" aria-label="Настроить сохранение задач, Готово, метка Работа, Высокий приоритет" style="--c: var(--tag-work);">
+      <span class="ci-accent" aria-hidden="true"></span>
+      <div class="ci-top">
+        <button class="ci-start" type="button" aria-label="Взять в работу: Настроить сохранение задач" hidden=""><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"></path></svg></button>
+        <label class="check">
+          <input type="checkbox" tabindex="-1">
+          <span class="box" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>
+        </label>
+        <p class="ci-text">Настроить сохранение задач</p>
+        <i class="flag p-high" aria-hidden="true" title="Высокий приоритет"></i>
+      </div>
+      <div class="ci-meta">
+        <span class="chip tag-work">Работа</span>
+        <span class="due" hidden=""></span>
+        <span class="subs" hidden=""><i class="sub-ring"></i><span></span></span>
+      </div>
+    </li><li class="card-item done" tabindex="0" data-id="digitaltodo-demo-v1-13" data-status="done" aria-label="Составить план на неделю, Готово, метка Личное, Средний приоритет" style="--c: var(--tag-home);">
+      <span class="ci-accent" aria-hidden="true"></span>
+      <div class="ci-top">
+        <button class="ci-start" type="button" aria-label="Взять в работу: Составить план на неделю" hidden=""><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"></path></svg></button>
+        <label class="check">
+          <input type="checkbox" tabindex="-1">
+          <span class="box" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>
+        </label>
+        <p class="ci-text">Составить план на неделю</p>
+        <i class="flag p-med" aria-hidden="true" title="Средний приоритет"></i>
+      </div>
+      <div class="ci-meta">
+        <span class="chip tag-home">Личное</span>
+        <span class="due" hidden=""></span>
+        <span class="subs" hidden=""><i class="sub-ring"></i><span></span></span>
+      </div>
+    </li><li class="card-item done" tabindex="0" data-id="digitaltodo-demo-v1-14" data-status="done" aria-label="Повторить методы массивов, Готово, метка Учёба, Средний приоритет, подзадачи 2 из 2" style="--c: var(--tag-study);">
+      <span class="ci-accent" aria-hidden="true"></span>
+      <div class="ci-top">
+        <button class="ci-start" type="button" aria-label="Взять в работу: Повторить методы массивов" hidden=""><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"></path></svg></button>
+        <label class="check">
+          <input type="checkbox" tabindex="-1">
+          <span class="box" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>
+        </label>
+        <p class="ci-text">Повторить методы массивов</p>
+        <i class="flag p-med" aria-hidden="true" title="Средний приоритет"></i>
+      </div>
+      <div class="ci-meta">
+        <span class="chip tag-study">Учёба</span>
+        <span class="due" hidden=""></span>
+        <span class="subs" style="--p: 100%;"><i class="sub-ring"></i><span>2/2</span></span>
+      </div>
+    </li><li class="card-item done" tabindex="0" data-id="digitaltodo-demo-v1-15" data-status="done" aria-label="Подготовить README проекта, Готово, метка Работа, Средний приоритет" style="--c: var(--tag-work);">
+      <span class="ci-accent" aria-hidden="true"></span>
+      <div class="ci-top">
+        <button class="ci-start" type="button" aria-label="Взять в работу: Подготовить README проекта" hidden=""><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"></path></svg></button>
+        <label class="check">
+          <input type="checkbox" tabindex="-1">
+          <span class="box" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>
+        </label>
+        <p class="ci-text">Подготовить README проекта</p>
+        <i class="flag p-med" aria-hidden="true" title="Средний приоритет"></i>
+      </div>
+      <div class="ci-meta">
+        <span class="chip tag-work">Работа</span>
+        <span class="due" hidden=""></span>
+        <span class="subs" hidden=""><i class="sub-ring"></i><span></span></span>
+      </div>
+    </li><li class="card-item done" tabindex="0" data-id="digitaltodo-demo-v1-16" data-status="done" aria-label="Проверить важные ссылки, Готово, метка Срочно, Высокий приоритет" style="--c: var(--tag-urgent);">
+      <span class="ci-accent" aria-hidden="true"></span>
+      <div class="ci-top">
+        <button class="ci-start" type="button" aria-label="Взять в работу: Проверить важные ссылки" hidden=""><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"></path></svg></button>
+        <label class="check">
+          <input type="checkbox" tabindex="-1">
+          <span class="box" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>
+        </label>
+        <p class="ci-text">Проверить важные ссылки</p>
+        <i class="flag p-high" aria-hidden="true" title="Высокий приоритет"></i>
+      </div>
+      <div class="ci-meta">
+        <span class="chip tag-urgent">Срочно</span>
+        <span class="due" hidden=""></span>
+        <span class="subs" hidden=""><i class="sub-ring"></i><span></span></span>
+      </div>
+    </li><li class="card-item done" tabindex="0" data-id="digitaltodo-demo-v1-17" data-status="done" aria-label="Навести порядок в заметках, Готово, метка Личное, Низкий приоритет" style="--c: var(--tag-home);">
+      <span class="ci-accent" aria-hidden="true"></span>
+      <div class="ci-top">
+        <button class="ci-start" type="button" aria-label="Взять в работу: Навести порядок в заметках" hidden=""><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"></path></svg></button>
+        <label class="check">
+          <input type="checkbox" tabindex="-1">
+          <span class="box" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>
+        </label>
+        <p class="ci-text">Навести порядок в заметках</p>
+        <i class="flag p-low" aria-hidden="true" title="Низкий приоритет"></i>
+      </div>
+      <div class="ci-meta">
+        <span class="chip tag-home">Личное</span>
+        <span class="due" hidden=""></span>
+        <span class="subs" hidden=""><i class="sub-ring"></i><span></span></span>
+      </div>
+    </li><li class="card-item done" tabindex="0" data-id="digitaltodo-demo-v1-18" data-status="done" aria-label="Пройти урок по доступности, Готово, метка Учёба, Средний приоритет, подзадачи 2 из 2" style="--c: var(--tag-study);">
+      <span class="ci-accent" aria-hidden="true"></span>
+      <div class="ci-top">
+        <button class="ci-start" type="button" aria-label="Взять в работу: Пройти урок по доступности" hidden=""><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"></path></svg></button>
+        <label class="check">
+          <input type="checkbox" tabindex="-1">
+          <span class="box" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>
+        </label>
+        <p class="ci-text">Пройти урок по доступности</p>
+        <i class="flag p-med" aria-hidden="true" title="Средний приоритет"></i>
+      </div>
+      <div class="ci-meta">
+        <span class="chip tag-study">Учёба</span>
+        <span class="due" hidden=""></span>
+        <span class="subs" style="--p: 100%;"><i class="sub-ring"></i><span>2/2</span></span>
+      </div>
+    </li></ul>
+        </div>
+      </section>
+
+      <p class="hint">Перетаскивайте карточки мышью или пальцем (удержание). С клавиатуры: <kbd>Alt</kbd> + стрелки. <kbd>N</kbd> новая задача, <kbd>Ctrl Z</kbd> отменить удаление</p>
+<section class="insights" aria-label="Ваша статистика">
+<div class="chart card">
+          <div class="card-head">
+            <h2>Активность за неделю</h2>
+            <span class="label" id="weekTotal">8 задач закрыто</span>
+          </div>
+          <div class="bars" id="bars"><div class="bar-col" title="27 октября: 1"><span class="bar-val">1</span><div class="bar-track"><span class="bar-fill" style="height: 33.3333%;"></span></div><span class="bar-day">вт</span></div><div class="bar-col" title="28 октября: 1"><span class="bar-val">1</span><div class="bar-track"><span class="bar-fill" style="height: 33.3333%;"></span></div><span class="bar-day">ср</span></div><div class="bar-col" title="29 октября: 1"><span class="bar-val">1</span><div class="bar-track"><span class="bar-fill" style="height: 33.3333%;"></span></div><span class="bar-day">чт</span></div><div class="bar-col" title="30 октября: 1"><span class="bar-val">1</span><div class="bar-track"><span class="bar-fill" style="height: 33.3333%;"></span></div><span class="bar-day">пт</span></div><div class="bar-col" title="31 октября: 1"><span class="bar-val">1</span><div class="bar-track"><span class="bar-fill" style="height: 33.3333%;"></span></div><span class="bar-day">сб</span></div><div class="bar-col" title="1 ноября: 1"><span class="bar-val">1</span><div class="bar-track"><span class="bar-fill" style="height: 33.3333%;"></span></div><span class="bar-day">вс</span></div><div class="bar-col is-today" title="2 ноября: 2"><span class="bar-val">2</span><div class="bar-track"><span class="bar-fill" style="height: 66.6667%;"></span></div><span class="bar-day">сег</span></div></div>
+        </div>
+        <div class="donut-card card">
+          <div class="card-head"><h2>По меткам</h2></div>
+          <div class="donut-wrap">
+            <svg class="donut" id="donut" viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="46" class="donut-track"></circle><circle cx="60" cy="60" r="46" class="donut-seg" style="stroke: var(--cyan); stroke-dasharray: 83.708, 289.027; stroke-dashoffset: 0;"></circle><circle cx="60" cy="60" r="46" class="donut-seg" style="stroke: var(--violet); stroke-dasharray: 83.708, 289.027; stroke-dashoffset: -86.708;"></circle><circle cx="60" cy="60" r="46" class="donut-seg" style="stroke: var(--orange); stroke-dasharray: 54.8053, 289.027; stroke-dashoffset: -173.416;"></circle><circle cx="60" cy="60" r="46" class="donut-seg" style="stroke: var(--pink); stroke-dasharray: 54.8053, 289.027; stroke-dashoffset: -231.221;"></circle></svg>
+            <div class="donut-center"><strong id="donutTotal">10</strong><span>активных</span></div>
+          </div>
+          <ul class="legend" id="legend"><li><i class="dot tag-work"></i>Работа<b>3</b></li><li><i class="dot tag-home"></i>Личное<b>3</b></li><li><i class="dot tag-study"></i>Учёба<b>2</b></li><li><i class="dot tag-urgent"></i>Срочно<b>2</b></li></ul>
+        </div>
+</section>
+</div>
+<aside class="work-aside" aria-label="Обзор и ближайшие сроки">
+<div class="scene card is-ready" id="scene">
+          <div class="scene-canvas"><div class="scene-labels" aria-hidden="true" style="pointer-events: none;"><span class="scene-node-label" data-id="digitaltodo-demo-v1-01" title="Подготовить презентацию проекта" data-status="todo" style="left: 67.4px; top: 81.3px; z-index: 17;">Подготовить презентацию проекта</span><span class="scene-node-label" data-id="digitaltodo-demo-v1-02" title="Обновить портфолио" data-status="todo" style="left: 96.8px; top: 110.2px; z-index: 17;">Обновить портфолио</span><span class="scene-node-label" data-id="digitaltodo-demo-v1-03" title="Прочитать главу про замыкания" data-status="todo" style="left: 59.5px; top: 57.7px; z-index: 19;">Прочитать главу про замыкания</span><span class="scene-node-label" data-id="digitaltodo-demo-v1-04" title="Запланировать тренировку" data-status="todo" style="left: 91.3px; top: 169.8px; z-index: 18;">Запланировать тренировку</span><span class="scene-node-label" data-id="digitaltodo-demo-v1-05" title="Разобрать входящие письма" data-status="todo" style="left: 45.7px; top: 145.4px; z-index: 21;">Разобрать входящие письма</span><span class="scene-node-label" data-id="digitaltodo-demo-v1-06" title="Составить список покупок" data-status="todo" style="left: 83.4px; top: 36.3px; z-index: 21;">Составить список покупок</span><span class="scene-node-label" data-id="digitaltodo-demo-v1-07" title="Проверить мобильную версию" data-status="doing" style="left: 148.2px; top: 86px; z-index: 18;">Проверить мобильную версию</span><span class="scene-node-label" data-id="digitaltodo-demo-v1-08" title="Отправить тестовое задание" data-status="doing" style="left: 177.8px; top: 65px; z-index: 18;">Отправить тестовое задание</span><span class="scene-node-label" data-id="digitaltodo-demo-v1-09" title="Изучить анимации интерфейса" data-status="doing" style="left: 146.9px; top: 147.9px; z-index: 20;">Изучить анимации интерфейса</span><span class="scene-node-label" data-id="digitaltodo-demo-v1-10" title="Спланировать выходные" data-status="doing" style="left: 178.8px; top: 176.2px; z-index: 19;">Спланировать выходные</span><span class="scene-node-label" data-id="digitaltodo-demo-v1-11" title="Собрать референсы интерфейса" data-status="done" style="left: 225px; top: 116.1px; z-index: 16;">Собрать референсы интерфейса</span><span class="scene-node-label" data-id="digitaltodo-demo-v1-12" title="Настроить сохранение задач" data-status="done" style="left: 251px; top: 95.1px; z-index: 16;">Настроить сохранение задач</span><span class="scene-node-label" data-id="digitaltodo-demo-v1-13" title="Составить план на неделю" data-status="done" style="left: 230.7px; top: 147.4px; z-index: 17;">Составить план на неделю</span><span class="scene-node-label" data-id="digitaltodo-demo-v1-14" title="Повторить методы массивов" data-status="done" style="left: 259.2px; top: 63.4px; z-index: 17;">Повторить методы массивов</span><span class="scene-node-label" data-id="digitaltodo-demo-v1-15" title="Подготовить README проекта" data-status="done" style="left: 237.7px; top: 33.9px; z-index: 19;">Подготовить README проекта</span><span class="scene-node-label" data-id="digitaltodo-demo-v1-16" title="Проверить важные ссылки" data-status="done" style="left: 269px; top: 180.9px; z-index: 19;">Проверить важные ссылки</span><span class="scene-node-label" data-id="digitaltodo-demo-v1-17" title="Навести порядок в заметках" data-status="done" style="left: 246.2px; top: 217.2px; z-index: 22;">Навести порядок в заметках</span><span class="scene-node-label" data-id="digitaltodo-demo-v1-18" title="Пройти урок по доступности" data-status="done" style="left: 281.1px; top: 238.2px; z-index: 22;">Пройти урок по доступности</span></div></div><button class="scene-expand" id="expandScene" type="button" aria-label="Развернуть 3D-обзор" aria-expanded="false" title="Развернуть 3D-обзор"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5"></path></svg></button>
+          <div class="scene-hud">
+            <div class="hud-title">
+              <span class="live-dot"></span>
+              <span>Маленький мир задач</span>
+            </div>
+
+          </div>
+          <p class="scene-hint">Вращайте фон. Переносите кубы между платформами, чтобы менять статус</p>
+          <div class="scene-tip" hidden=""><strong class="tip-title"></strong><span class="tip-meta"></span></div>
+          <div class="scene-fallback" hidden="">3D недоступно в этом браузере, но всё остальное работает.</div>
+        </div>
+<p class="aside-note">Каждый куб — ваша задача. Маленькие шаги складываются в большие дела.</p>
+<div class="deadlines card">
+          <div class="card-head"><h2>Ближайшие сроки</h2></div>
+          <ul class="dl-list" id="deadlines"><li data-id="digitaltodo-demo-v1-05" tabindex="0" class="dl-item"><i class="dot tag-urgent"></i><span class="dl-text">Разобрать входящие письма</span><span class="due" data-state="overdue">Вчера</span></li><li data-id="digitaltodo-demo-v1-07" tabindex="0" class="dl-item"><i class="dot tag-work"></i><span class="dl-text">Проверить мобильную версию</span><span class="due" data-state="today">Сегодня</span></li><li data-id="digitaltodo-demo-v1-08" tabindex="0" class="dl-item"><i class="dot tag-urgent"></i><span class="dl-text">Отправить тестовое задание</span><span class="due" data-state="today">Сегодня</span></li><li data-id="digitaltodo-demo-v1-01" tabindex="0" class="dl-item"><i class="dot tag-work"></i><span class="dl-text">Подготовить презентацию проекта</span><span class="due" data-state="soon">Завтра</span></li></ul>
+        </div>
+<div class="aside-shortcuts"><h2>Всё под рукой</h2><p><kbd>N</kbd> Новая задача</p><p><kbd>Ctrl K</kbd> Поиск по задачам</p><p><kbd>Alt</kbd> + стрелки — сменить статус</p><p>Нажмите на карточку, чтобы открыть детали, заметки и подзадачи.</p></div>
+</aside>
+</main>
+
+    <footer class="footer">
+      Digital To-Do · Создано с помощью <a href="https://claude.com/claude-code" target="_blank" rel="noopener">Claude Code</a> и <a href="https://openai.com/codex/" target="_blank" rel="noopener">Codex</a>
+    </footer>
+  </div>

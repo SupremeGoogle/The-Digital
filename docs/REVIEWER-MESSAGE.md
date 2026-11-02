@@ -20,6 +20,6 @@
 
 Где что лежит: `index.html`, стили в `css/`, логика в `js/` (по модулю на функцию), сервер в `server/`, скриншоты и инструкции в `docs/`. Подробности — в README.
 
-И бонусом сделал небольшой промо-ролик продукта (~30 секунд): https://github.com/SupremeGoogle/The-Digital/blob/main/promo-video/renders/digital-todo-promo.mp4 Понимаю, что в задании этого не было, но хотелось выделиться 🙂
+И бонусом сделал небольшой промо-ролик продукта (45 секунд): https://github.com/SupremeGoogle/The-Digital/blob/main/promo-video/renders/digital-todo-promo.mp4 Понимаю, что в задании этого не было, но хотелось выделиться 🙂
 
 Буду рад обратной связи!

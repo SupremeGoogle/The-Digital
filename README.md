@@ -127,7 +127,7 @@ promo-video/      промо-ролик (бонус)
 
 ## Промо-ролик (бонус)
 
-Сверх задания я сделал короткий промо-ролик продукта (~30 секунд, русская озвучка, реальный интерфейс сайта): [`promo-video/renders/digital-todo-promo.mp4`](promo-video/renders/digital-todo-promo.mp4).
+Сверх задания я сделал короткий промо-ролик продукта (45 секунд, русская озвучка, реальный интерфейс сайта): [`promo-video/renders/digital-todo-promo.mp4`](promo-video/renders/digital-todo-promo.mp4).
 
 ## AI-инструменты
 

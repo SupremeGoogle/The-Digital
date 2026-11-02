@@ -1,0 +1,32 @@
+<section id="digitalPal" class="digital-pal pal-open" data-state="idle" aria-label="Диди — помощник по задачам" style="--pal-gaze-x: 0px; --pal-gaze-y: 0px; --pal-head-tilt: 0deg;"><div class="pal-observation" role="status" aria-live="polite" hidden=""></div><button class="pal-launcher" type="button" aria-label="Свернуть помощника Диди" aria-expanded="true" aria-controls="palPanel"><svg class="pal-robot" viewBox="0 0 100 112" aria-hidden="true">
+  <defs>
+    <linearGradient id="pal-shell" x2=".8" y2="1"><stop stop-color="#d4ecff"></stop><stop offset=".45" stop-color="#88bdf8"></stop><stop offset="1" stop-color="#4e8be1"></stop></linearGradient>
+    <linearGradient id="pal-belly" x2=".7" y2="1"><stop stop-color="#f7fbff"></stop><stop offset="1" stop-color="#c5defb"></stop></linearGradient>
+    <linearGradient id="pal-face" x2=".5" y2="1"><stop stop-color="#254c81"></stop><stop offset="1" stop-color="#142d52"></stop></linearGradient>
+  </defs>
+  <ellipse class="pal-shadow" cx="50" cy="104" rx="28" ry="5" fill="#466b9d" opacity=".18"></ellipse>
+  <g class="pal-character">
+    <g class="pal-antenna"><path d="M50 16V9" stroke="#659be2" stroke-width="5" stroke-linecap="round"></path><circle cx="50" cy="7" r="5" fill="#f6ce68"></circle></g>
+    <g class="pal-arm pal-arm-left"><rect x="7" y="59" width="14" height="28" rx="7" fill="url(#pal-shell)"></rect></g>
+    <g class="pal-arm pal-arm-right"><rect x="79" y="59" width="14" height="28" rx="7" fill="url(#pal-shell)"></rect></g>
+    <rect class="pal-foot pal-foot-left" x="26" y="91" width="19" height="12" rx="6" fill="#548cda"></rect>
+    <rect class="pal-foot pal-foot-right" x="55" y="91" width="19" height="12" rx="6" fill="#548cda"></rect>
+    <rect x="22" y="61" width="56" height="36" rx="18" fill="url(#pal-shell)" stroke="#e5f3ff" stroke-width="1.5"></rect>
+    <rect x="32" y="67" width="36" height="24" rx="11" fill="url(#pal-belly)"></rect>
+    <path d="m43 79 5 5 10-11" fill="none" stroke="#4f93d9" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path>
+    <g class="pal-head"><rect x="13" y="16" width="74" height="53" rx="22" fill="url(#pal-shell)" stroke="#e5f3ff" stroke-width="1.5"></rect>
+    <rect x="23" y="27" width="54" height="29" rx="13" fill="url(#pal-face)"></rect>
+    <g class="pal-eyes"><rect x="35" y="35" width="7" height="11" rx="3.5" fill="#d0f2ff"></rect><rect x="58" y="35" width="7" height="11" rx="3.5" fill="#d0f2ff"></rect></g>
+    <path class="pal-smile" d="M46 48q4 3 8 0" fill="none" stroke="#a9e3ff" stroke-width="2" stroke-linecap="round"></path>
+    <circle cx="20" cy="45" r="3" fill="#accfff"></circle><circle cx="80" cy="45" r="3" fill="#accfff"></circle>
+    <path d="M30 23q12-6 26-3" fill="none" stroke="#f1faff" stroke-width="3" stroke-linecap="round" opacity=".7"></path></g>
+  </g>
+</svg><span class="pal-name">Диди</span></button>
+    <section class="pal-panel" id="palPanel" role="dialog" aria-labelledby="palTitle">
+      <header class="pal-header"><div><h2 id="palTitle">Диди <span>помощник по задачам</span></h2><p class="pal-mode">Помощник по задачам · AI подключается</p></div><div class="pal-header-actions"><button type="button" class="pal-close" aria-label="Закрыть помощника"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"></path></svg></button></div></header>
+      <div class="pal-messages" role="log" aria-live="polite" aria-relevant="additions text"><div class="pal-message pal-message-assistant"><strong class="pal-message-label">Диди</strong><p>Привет! Я Диди. Помогу выбрать следующее дело, посчитать прогресс и разобраться с сайтом. С чего начнём?</p></div></div>
+      <div class="pal-suggestions" aria-label="Вопросы помощнику"><button type="button" data-question="Сколько задач осталось?">Мой прогресс</button><button type="button" data-question="Какие задачи важнее?">Что важнее?</button><button type="button" data-question="Какие ближайшие сроки?">Сроки</button><button type="button" data-question="Как пользоваться сайтом?">Гид по сайту</button></div>
+      <nav class="pal-guide" aria-label="Перейти к разделу сайта" hidden=""><button type="button" data-tour="new">Новая задача</button><button type="button" data-tour="board">Показать доску</button><button type="button" data-tour="stats">Статистика</button></nav>
+      <form class="pal-form"><label class="sr-only" for="palQuestion">Вопрос помощнику</label><input id="palQuestion" maxlength="1000" placeholder="Спросите про свои задачи…" autocomplete="off"><button type="submit" aria-label="Отправить вопрос"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 14-7-5 14-2-7-7 0zM12 12l7-7"></path></svg></button></form>
+      <p class="pal-privacy">Для ответа AI получает вопрос и список задач. Заметки не передаются.</p>
+    </section></section>

@@ -1,0 +1,212 @@
+<template>
+  <style>
+    /*FONTS*/@font-face{font-family:"Manrope";font-weight:500;font-style:normal;src:url("assets/fonts/manrope-cyrillic-0.woff2") format("woff2");unicode-range:U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;}
+@font-face{font-family:"Manrope";font-weight:500;font-style:normal;src:url("assets/fonts/manrope-latin-1.woff2") format("woff2");unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+@font-face{font-family:"Manrope";font-weight:600;font-style:normal;src:url("assets/fonts/manrope-cyrillic-0.woff2") format("woff2");unicode-range:U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;}
+@font-face{font-family:"Manrope";font-weight:600;font-style:normal;src:url("assets/fonts/manrope-latin-1.woff2") format("woff2");unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+@font-face{font-family:"Manrope";font-weight:700;font-style:normal;src:url("assets/fonts/manrope-cyrillic-0.woff2") format("woff2");unicode-range:U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;}
+@font-face{font-family:"Manrope";font-weight:700;font-style:normal;src:url("assets/fonts/manrope-latin-1.woff2") format("woff2");unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+@font-face{font-family:"Manrope";font-weight:800;font-style:normal;src:url("assets/fonts/manrope-cyrillic-0.woff2") format("woff2");unicode-range:U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;}
+@font-face{font-family:"Manrope";font-weight:800;font-style:normal;src:url("assets/fonts/manrope-latin-1.woff2") format("woff2");unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+@font-face{font-family:"Nunito";font-weight:800;font-style:normal;src:url("assets/fonts/nunito-cyrillic-2.woff2") format("woff2");unicode-range:U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;}
+@font-face{font-family:"Nunito";font-weight:800;font-style:normal;src:url("assets/fonts/nunito-latin-3.woff2") format("woff2");unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+@font-face{font-family:"Nunito";font-weight:900;font-style:normal;src:url("assets/fonts/nunito-cyrillic-2.woff2") format("woff2");unicode-range:U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;}
+@font-face{font-family:"Nunito";font-weight:900;font-style:normal;src:url("assets/fonts/nunito-latin-3.woff2") format("woff2");unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+/*/FONTS*/
+    #root {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+    }
+    #e-ground {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 50% 43%, #fbfdff, #eaf4ff 55%, #d7eaff);
+    }
+    #e-halo {
+      position: absolute;
+      left: 580px;
+      top: 90px;
+      width: 760px;
+      height: 760px;
+      border: 2px solid #fff;
+      border-radius: 50%;
+      box-shadow: inset 6px 6px 36px #bed5f140, 14px 20px 44px #a7c6e921;
+    }
+    .e-dot {
+      position: absolute;
+      border-radius: 50%;
+    }
+    #e-dot-y { left: 1180px; top: 168px; width: 40px; height: 40px; background: linear-gradient(145deg, #fff1bc, #f3cb63); box-shadow: 3px 5px 10px #d1b66c35; }
+    #e-dot-m { left: 650px; top: 690px; width: 28px; height: 28px; background: linear-gradient(145deg, #d7f8ea, #91d3ba); box-shadow: 3px 4px 9px #72b19c30; }
+    #e-mark {
+      position: absolute;
+      left: 860px;
+      top: 190px;
+      width: 200px;
+      height: 200px;
+      overflow: visible;
+      filter: drop-shadow(0 16px 14px #4d83bd2e);
+    }
+    #e-name {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 418px;
+      text-align: center;
+      color: #162c60;
+      font: 900 92px/1.1 "Nunito", sans-serif;
+      letter-spacing: -0.055em;
+    }
+    #e-name .to { color: #2864df; }
+    #e-caption {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 548px;
+      text-align: center;
+      color: #536e98;
+      font: 700 40px/1.4 "Manrope", sans-serif;
+      letter-spacing: -0.01em;
+    }
+    #e-cap-2 .hl {
+      display: inline-block;
+      padding: 0 14px 4px;
+      border-radius: 12px;
+      background: #2864df;
+      color: #fff;
+    }
+    #e-progress {
+      position: absolute;
+      left: 860px;
+      top: 650px;
+      width: 200px;
+      height: 6px;
+      overflow: hidden;
+      border-radius: 6px;
+      background: #d8e7f9;
+      box-shadow: inset 1px 1px 2px #adc3df77;
+    }
+    #e-progress-fill {
+      width: 100%;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #92c8ff, #3673e2);
+    }
+    #e-url {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 690px;
+      text-align: center;
+      color: #2864df;
+      font: 800 32px/1.3 "Manrope", sans-serif;
+    }
+    #e-didi {
+      position: absolute;
+      left: 1390px;
+      top: 548px;
+      width: 220px;
+      height: 246px;
+    }
+    #e-didi .pal-robot {
+      width: 220px !important;
+      height: 246px !important;
+      filter: drop-shadow(0 14px 14px rgba(60, 100, 160, 0.18));
+    }
+    #e-didi .pal-robot * {
+      animation: none !important;
+      transition: none !important;
+    }
+  </style>
+  <div data-hf-id="hf-32ii" id="root" data-composition-id="endcard" data-width="1920" data-height="1080">
+    <div data-hf-id="hf-w90u" id="e-ground"></div>
+    <div data-hf-id="hf-er5d" id="e-halo"></div>
+    <div data-hf-id="hf-osy6" id="e-dot-y" class="e-dot"></div>
+    <div data-hf-id="hf-mhqy" id="e-dot-m" class="e-dot"></div>
+    <!-- The site's own mark, from js/intro.js. -->
+    <svg data-hf-id="hf-8xkx" id="e-mark" viewBox="0 0 96 96" aria-hidden="true">
+      <defs data-hf-id="hf-mh0t">
+        <linearGradient data-hf-id="hf-lney" id="e-blue" x1="0" y1="0" x2=".8" y2="1"><stop data-hf-id="hf-3esg" stop-color="#a1d2ff"/><stop data-hf-id="hf-nmtf" offset=".45" stop-color="#4a91ef"/><stop data-hf-id="hf-nvgy" offset="1" stop-color="#235bd5"/></linearGradient>
+        <linearGradient data-hf-id="hf-0vjg" id="e-mint" x2=".7" y2="1"><stop data-hf-id="hf-qybo" stop-color="#d4f9e8"/><stop data-hf-id="hf-ebqz" offset="1" stop-color="#78ccad"/></linearGradient>
+      </defs>
+      <path data-hf-id="hf-yz0v" id="e-d" d="M16 21a7 7 0 0 1 7-7h18c22 0 36 14 36 33S63 80 41 80H23a7 7 0 0 1-7-7V21Z" fill="url(#e-blue)"/>
+      <path data-hf-id="hf-wpna" id="e-counter" d="M30 30v34h11c12 0 21-6 21-17s-9-17-21-17H30Z" fill="#edf6ff"/>
+      <path data-hf-id="hf-jab8" id="e-check-o" class="e-check" pathLength="1" stroke-dasharray="1" d="m28 47 11 11L83 10" fill="none" stroke="#edf6ff" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
+      <path data-hf-id="hf-tfrf" id="e-check" class="e-check" pathLength="1" stroke-dasharray="1" d="m28 47 11 11L83 10" fill="none" stroke="#235bd5" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+      <rect data-hf-id="hf-ks2t" id="e-px-1" x="80" y="63" width="12" height="12" rx="4" fill="url(#e-mint)"/>
+      <rect data-hf-id="hf-x38v" id="e-px-2" x="79" y="80" width="7" height="7" rx="2.5" fill="#f7ce62"/>
+    </svg>
+    <div data-hf-id="hf-b5hy" id="e-name"><span data-hf-id="hf-1pc0" class="ch">D</span><span data-hf-id="hf-frkn" class="ch">i</span><span data-hf-id="hf-nsm1" class="ch">g</span><span data-hf-id="hf-fo0n" class="ch">i</span><span data-hf-id="hf-eknk" class="ch">t</span><span data-hf-id="hf-mzzz" class="ch">a</span><span data-hf-id="hf-hr3s" class="ch">l</span> <span data-hf-id="hf-d8ni" class="to"><span data-hf-id="hf-vcfk" class="ch">T</span><span data-hf-id="hf-gk6p" class="ch">o</span><span data-hf-id="hf-rx6z" class="ch">-</span><span data-hf-id="hf-zm9k" class="ch">D</span><span data-hf-id="hf-raqt" class="ch">o</span></span></div>
+    <div data-hf-id="hf-o39f" id="e-caption"><span data-hf-id="hf-j2jv" id="e-cap-1">Большие планы.</span> <span data-hf-id="hf-ectp" id="e-cap-2">Маленькие <span data-hf-id="hf-dkc4" class="hl">шаги.</span></span></div>
+    <div data-hf-id="hf-l18m" id="e-progress"><div data-hf-id="hf-kkvs" id="e-progress-fill"></div></div>
+    <div data-hf-id="hf-kate" id="e-url">supremegoogle.github.io/The-Digital</div>
+    <div data-hf-id="hf-w71v" id="e-didi"><!--didi:e-didi-svg--><svg class="pal-robot" id="e-didi-svg" viewBox="0 0 100 112" aria-hidden="true">
+  <defs>
+    <linearGradient id="e-didi-svg-pal-shell" x2=".8" y2="1"><stop stop-color="#d4ecff"/><stop offset=".45" stop-color="#88bdf8"/><stop offset="1" stop-color="#4e8be1"/></linearGradient>
+    <linearGradient id="e-didi-svg-pal-belly" x2=".7" y2="1"><stop stop-color="#f7fbff"/><stop offset="1" stop-color="#c5defb"/></linearGradient>
+    <linearGradient id="e-didi-svg-pal-face" x2=".5" y2="1"><stop stop-color="#254c81"/><stop offset="1" stop-color="#142d52"/></linearGradient>
+  </defs>
+  <ellipse class="pal-shadow" cx="50" cy="104" rx="28" ry="5" fill="#466b9d" opacity=".18"/>
+  <g class="pal-character">
+    <g class="pal-antenna"><path d="M50 16V9" stroke="#659be2" stroke-width="5" stroke-linecap="round"/><circle cx="50" cy="7" r="5" fill="#f6ce68"/></g>
+    <g class="pal-arm pal-arm-left"><rect x="7" y="59" width="14" height="28" rx="7" fill="url(#e-didi-svg-pal-shell)"/></g>
+    <g class="pal-arm pal-arm-right"><rect x="79" y="59" width="14" height="28" rx="7" fill="url(#e-didi-svg-pal-shell)"/></g>
+    <rect class="pal-foot pal-foot-left" x="26" y="91" width="19" height="12" rx="6" fill="#548cda"/>
+    <rect class="pal-foot pal-foot-right" x="55" y="91" width="19" height="12" rx="6" fill="#548cda"/>
+    <rect x="22" y="61" width="56" height="36" rx="18" fill="url(#e-didi-svg-pal-shell)" stroke="#e5f3ff" stroke-width="1.5"/>
+    <rect x="32" y="67" width="36" height="24" rx="11" fill="url(#e-didi-svg-pal-belly)"/>
+    <path d="m43 79 5 5 10-11" fill="none" stroke="#4f93d9" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+    <g class="pal-head"><rect x="13" y="16" width="74" height="53" rx="22" fill="url(#e-didi-svg-pal-shell)" stroke="#e5f3ff" stroke-width="1.5"/>
+    <rect x="23" y="27" width="54" height="29" rx="13" fill="url(#e-didi-svg-pal-face)"/>
+    <g class="pal-eyes"><rect x="35" y="35" width="7" height="11" rx="3.5" fill="#d0f2ff"/><rect x="58" y="35" width="7" height="11" rx="3.5" fill="#d0f2ff"/></g>
+    <path class="pal-smile" d="M46 48q4 3 8 0" fill="none" stroke="#a9e3ff" stroke-width="2" stroke-linecap="round"/>
+    <circle cx="20" cy="45" r="3" fill="#accfff"/><circle cx="80" cy="45" r="3" fill="#accfff"/>
+    <path d="M30 23q12-6 26-3" fill="none" stroke="#f1faff" stroke-width="3" stroke-linecap="round" opacity=".7"/></g>
+  </g>
+</svg><!--/didi--></div>
+  </div>
+  <script>
+    (function () {
+      const tl = gsap.timeline({ paused: true });
+      const D = "#e-didi-svg ";
+      // Scene clock: 0 = 26.95 s of the film.
+      // The new world opens as an iris from the centre of the 3D shot.
+      tl.fromTo("#e-ground", { clipPath: "circle(0% at 50% 50%)" }, { clipPath: "circle(75% at 50% 50%)", duration: 0.6, ease: "power2.inOut" }, 0); // IRIS-RETIMED
+      tl.fromTo("#e-halo", { opacity: 0, scale: 0.82 }, { opacity: 0.7, scale: 1, duration: 1.4, ease: "expo.out" }, 0.6);
+      tl.fromTo(["#e-dot-y", "#e-dot-m"], { opacity: 0, scale: 0.3 }, { opacity: 1, scale: 1, duration: 0.45, ease: "back.out(2)", stagger: 0.12 }, 0.95);
+
+      // Didi hops in carrying the mark on his head, then tosses it to the centre.
+      tl.fromTo("#e-didi", { x: 700, y: 0 }, { keyframes: { x: [700, 350, 0], y: [0, -90, 0] }, duration: 0.34, ease: "power2.out" }, 0.45);
+      tl.fromTo("#e-mark", { x: 1240, y: 250, scale: 0.42, rotation: 12 },
+        { keyframes: { x: [1240, 890, 540], y: [250, 160, 250] }, duration: 0.34, ease: "power2.out" }, 0.45);
+      tl.fromTo("#e-didi", { scaleX: 1, scaleY: 1, transformOrigin: "50% 100%" }, { scaleX: 1.12, scaleY: 0.86, duration: 0.08, ease: "power2.out" }, 0.79);
+      tl.to("#e-didi", { scaleX: 0.92, scaleY: 1.12, duration: 0.1, ease: "power2.out" }, 0.87);
+      tl.to("#e-didi", { scaleX: 1, scaleY: 1, duration: 0.3, ease: "back.out(2.5)" }, 0.97);
+      tl.fromTo(D + ".pal-arm-left", { rotation: 0, svgOrigin: "14 62" }, { keyframes: { rotation: [150, 150, 20] }, duration: 0.5, ease: "power2.out" }, 0.75);
+      tl.fromTo(D + ".pal-arm-right", { rotation: 0, svgOrigin: "86 62" }, { keyframes: { rotation: [-150, -150, -20] }, duration: 0.5, ease: "power2.out" }, 0.78);
+      tl.to("#e-mark", { keyframes: { x: [540, 270, 0], y: [250, -50, 0] }, duration: 0.3, ease: "power2.out" }, 0.77);
+      tl.to("#e-mark", { scale: 1, rotation: -9, duration: 0.3, ease: "power2.out" }, 0.77);
+      tl.to("#e-mark", { rotation: 0, duration: 0.3, ease: "back.out(2)" }, 1.07);
+      tl.fromTo(".e-check", { strokeDashoffset: 1 }, { strokeDashoffset: 0, duration: 0.55, ease: "power2.inOut" }, 1.07);
+      tl.fromTo("#e-px-1", { opacity: 0, scale: 0.4, y: -12, rotation: 25, transformOrigin: "50% 50%" }, { opacity: 1, scale: 1, y: 0, rotation: 0, duration: 0.4, ease: "back.out(2.2)" }, 1.25);
+      tl.fromTo("#e-px-2", { opacity: 0, scale: 0.4, y: -12, rotation: 25, transformOrigin: "50% 50%" }, { opacity: 1, scale: 1, y: 0, rotation: 0, duration: 0.4, ease: "back.out(2.2)" }, 1.37);
+      tl.fromTo("#e-name .ch", { opacity: 0.25, filter: "blur(6px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.12, ease: "power2.out", stagger: 0.034 }, 0.93);
+      tl.fromTo("#e-name", { opacity: 0 }, { opacity: 1, duration: 0.06, ease: "none" }, 0.93);
+      tl.fromTo("#e-cap-1", { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.18, ease: "power4.out" }, 1.94);
+      tl.fromTo("#e-cap-2", { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.18, ease: "power4.out" }, 3.15);
+      tl.fromTo("#e-progress", { opacity: 0 }, { opacity: 1, duration: 0.2, ease: "none" }, 1.05);
+      tl.fromTo("#e-progress-fill", { scaleX: 0.03, transformOrigin: "0 50%" }, { scaleX: 1, duration: 2.9, ease: "power2.out" }, 1.05);
+      tl.fromTo("#e-url", { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.2, ease: "power4.out" }, 2.5);
+
+      // A small celebration on "шаги", then a blink while we hold.
+      tl.to("#e-didi", { keyframes: { y: [0, -70, 0] }, duration: 0.42, ease: "power1.inOut" }, 3.17);
+      tl.to(D + ".pal-arm-left", { keyframes: { rotation: [20, 140, 20] }, duration: 0.45, ease: "sine.inOut" }, 3.15);
+      tl.to(D + ".pal-arm-right", { keyframes: { rotation: [-20, -140, -20] }, duration: 0.45, ease: "sine.inOut" }, 3.19);
+      tl.fromTo(D + ".pal-eyes", { scaleY: 1, svgOrigin: "50 40" }, { keyframes: { scaleY: [0.1, 1] }, duration: 0.14, ease: "none" }, 4.2);
+      tl.fromTo(D + ".pal-head", { rotation: 0, svgOrigin: "50 69" }, { rotation: -6, duration: 0.3, ease: "power2.out" }, 3.75);
+
+      window.__timelines["endcard"] = tl;
+    })();
+  </script>
+</template>

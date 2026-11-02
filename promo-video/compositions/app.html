@@ -1,0 +1,933 @@
+<template>
+  <style>
+    /*FONTS*/@font-face{font-family:"Manrope";font-weight:500;font-style:normal;src:url("assets/fonts/manrope-cyrillic-0.woff2") format("woff2");unicode-range:U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;}
+@font-face{font-family:"Manrope";font-weight:500;font-style:normal;src:url("assets/fonts/manrope-latin-1.woff2") format("woff2");unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+@font-face{font-family:"Manrope";font-weight:600;font-style:normal;src:url("assets/fonts/manrope-cyrillic-0.woff2") format("woff2");unicode-range:U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;}
+@font-face{font-family:"Manrope";font-weight:600;font-style:normal;src:url("assets/fonts/manrope-latin-1.woff2") format("woff2");unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+@font-face{font-family:"Manrope";font-weight:700;font-style:normal;src:url("assets/fonts/manrope-cyrillic-0.woff2") format("woff2");unicode-range:U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;}
+@font-face{font-family:"Manrope";font-weight:700;font-style:normal;src:url("assets/fonts/manrope-latin-1.woff2") format("woff2");unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+@font-face{font-family:"Manrope";font-weight:800;font-style:normal;src:url("assets/fonts/manrope-cyrillic-0.woff2") format("woff2");unicode-range:U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;}
+@font-face{font-family:"Manrope";font-weight:800;font-style:normal;src:url("assets/fonts/manrope-latin-1.woff2") format("woff2");unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+@font-face{font-family:"Nunito";font-weight:800;font-style:normal;src:url("assets/fonts/nunito-cyrillic-2.woff2") format("woff2");unicode-range:U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;}
+@font-face{font-family:"Nunito";font-weight:800;font-style:normal;src:url("assets/fonts/nunito-latin-3.woff2") format("woff2");unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+@font-face{font-family:"Nunito";font-weight:900;font-style:normal;src:url("assets/fonts/nunito-cyrillic-2.woff2") format("woff2");unicode-range:U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;}
+@font-face{font-family:"Nunito";font-weight:900;font-style:normal;src:url("assets/fonts/nunito-latin-3.woff2") format("woff2");unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+/*/FONTS*/
+    #root {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+    }
+    #a-cam {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 1920px;
+      height: 1900px;
+    }
+    /* The UI is frozen: only this film's timeline moves it. */
+    #a-cam *,
+    #a-cam *::before,
+    #a-cam *::after {
+      animation: none !important;
+      transition: none !important;
+    }
+    #a-cam .app { opacity: 1 !important; transform: none !important; }
+    #a-cam .scene-canvas { display: none; }
+    #a-3d-box {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 50%;
+      aspect-ratio: 16 / 9;
+      margin-top: -28.125%;
+      overflow: hidden;
+      z-index: 0;
+    }
+    #a-3d-box img,
+    #a-3d-box video {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    #a-cam .scene-hud,
+    #a-cam .scene-expand { z-index: 2; }
+    #a-cam .count,
+    #a-cam .progress-pct > span,
+    #a-cam [data-kpi],
+    #a-cam #progressNote { display: inline-grid; }
+    .a-alt { grid-area: 1 / 1; }
+    #a-typed,
+    #a-ph {
+      position: absolute;
+      left: 0;
+      top: 0;
+      white-space: pre;
+      pointer-events: none;
+      z-index: 5;
+    }
+    #a-ph { color: var(--faint); }
+    #a-typed { color: var(--text); }
+    #a-card {
+      position: absolute;
+      left: 0;
+      top: 0;
+      z-index: 30;
+    }
+    #a-card .card-item { position: absolute; left: 0; top: 0; margin: 0; width: 100%; list-style: none; }
+    #a-v-todo { outline: 2px solid rgba(40, 100, 223, 0); outline-offset: 2px; }
+    .a-off { opacity: 0; }
+    #a-card .a-strike {
+      position: absolute;
+      height: 2px;
+      background: var(--faint);
+    }
+    #a-confetti i {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 5px;
+      height: 8px;
+      border-radius: 2px;
+      box-shadow: inset 0 1px 1px #ffffffb3;
+    }
+    #a-confetti { position: absolute; left: 0; top: 0; z-index: 31; }
+    #a-pal .digital-pal {
+      position: absolute;
+      left: 1805px;
+      top: 930px;
+      right: auto;
+      bottom: auto;
+    }
+    #a-pal .pal-panel[hidden] { display: flex; }
+    #a-pal .a-stack { display: grid; }
+    #a-pal .a-stack > p { grid-area: 1 / 1; }
+    #a-3d {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      z-index: 2;
+    }
+    #a-cursor {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 40px;
+      height: 40px;
+      z-index: 60;
+      filter: drop-shadow(0 3px 4px rgba(20, 40, 80, 0.35));
+    }
+    .a-grid { display: inline-grid; }
+    .a-grid > .a-alt { grid-area: 1 / 1; }
+    #a-cam #calendar { position: absolute; left: 0; top: 0; margin: 0; z-index: 3; }
+    #a-tg-back {
+      position: absolute;
+      inset: 0;
+      background: #15335f55;
+      backdrop-filter: blur(4px);
+      opacity: 0;
+      z-index: 40;
+    }
+    #a-tg-layer { position: absolute; inset: 0; z-index: 41; pointer-events: none; }
+    #a-tg { position: absolute; margin: 0; max-height: none; overflow: visible; opacity: 0; }
+    #a-tg .a-grid { display: grid; }
+    #a-tg .a-dt { display: flex; align-items: center; }
+    #a-tg .a-dis { opacity: 0.55; }
+    #a-push {
+      position: absolute;
+      right: 70px;
+      top: 60px;
+      width: 560px;
+      display: flex;
+      gap: 20px;
+      padding: 24px 26px;
+      border-radius: 28px;
+      background: rgba(252, 253, 255, 0.96);
+      box-shadow: 0 24px 50px rgba(30, 60, 110, 0.28), 0 2px 6px rgba(30, 60, 110, 0.12);
+      color: #162c60;
+      font-family: "Manrope", sans-serif;
+      opacity: 0;
+      z-index: 45;
+    }
+    #a-push-icon {
+      flex: none;
+      display: grid;
+      place-items: center;
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background: linear-gradient(160deg, #5aaef0, #2a83d8);
+    }
+    #a-push-icon svg { width: 40px; height: 40px; fill: none; stroke: #fff; stroke-width: 1.8; stroke-linejoin: round; }
+    #a-push-body { flex: 1; }
+    #a-push-top { display: flex; justify-content: space-between; font-size: 22px; color: #536e98; }
+    #a-push-top b { color: #162c60; }
+    #a-push-title { margin-top: 6px; font: 800 28px/1.25 "Manrope", sans-serif; }
+    #a-push-text { margin-top: 4px; font: 600 28px/1.25 "Manrope", sans-serif; }
+    #a-3d-wrap { position: absolute; inset: 0; opacity: 0; z-index: 30; overflow: hidden; }
+    #a-3d { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+    .a-cur { position: absolute; left: 0; top: 0; width: 40px; height: 40px; filter: drop-shadow(0 3px 4px rgba(20, 40, 80, 0.35)); }
+    #a-cursor { z-index: 60; }
+    #a-cursor2 { z-index: 50; }
+  </style>
+    <div id="root" data-composition-id="app" data-width="1920" data-height="1080">
+    <div id="a-cam" data-layout-allow-overflow data-layout-allow-overlap data-layout-ignore>
+      <div class="app">
+    <header class="topbar">
+      <a class="brand" href="./" aria-label="Digital To-Do — главная">
+        <span class="mark digital-mark" aria-hidden="true"><img src="assets/site/favicon.svg" alt="" width="48" height="48"></span>
+        <span class="wordmark digital-wordmark">Digital <span>To-Do</span></span>
+      </a>
+      <div class="greeting">
+        <span class="eyebrow" id="today">понедельник, 2 ноября</span>
+        <h1>Мой день</h1>
+      </div>
+      <label class="search">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+        <span class="sr-only">Поиск</span>
+        <input id="search" type="search" placeholder="Поиск задач" autocomplete="off">
+        <kbd>Ctrl K</kbd>
+      </label>
+      <button class="icon-btn" id="themeBtn" type="button" aria-label="Сменить тему">
+        <svg class="i-sun" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg>
+        <svg class="i-moon" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"></path></svg>
+      </button>
+    </header>
+
+<main class="workspace">
+<div class="work-area">
+<div class="side">
+          <div class="progress card tilt">
+            <div class="progress-head">
+              <span class="label">Прогресс</span>
+              <span class="label" id="progressNote"><span id="a-note-818" class="a-alt">8 из 18</span><span id="a-note-819" class="a-alt a-off">8 из 19</span><span id="a-note-919" class="a-alt a-off">9 из 19</span></span>
+            </div>
+            <strong class="progress-pct"><span id="progressPct"><span id="a-pct-44" class="a-alt">44</span><span id="a-pct-42" class="a-alt a-off">42</span><span id="a-pct-43" class="a-alt a-off">43</span><span id="a-pct-44b" class="a-alt a-off">44</span><span id="a-pct-45" class="a-alt a-off">45</span><span id="a-pct-46" class="a-alt a-off">46</span><span id="a-pct-47" class="a-alt a-off">47</span></span>%</strong>
+            <div class="bar"><span id="progressBar" style="width: 44%;"></span></div>
+            <p class="progress-sub" id="progressSub"><span class="a-grid"><span id="a-sub-10" class="a-alt">Осталось 10 задач</span><span id="a-sub-11" class="a-alt a-off">Осталось 11 задач</span><span id="a-sub-10b" class="a-alt a-off">Осталось 10 задач</span></span></p>
+          </div>
+          <div class="kpis">
+            <div class="kpi card tilt tone-cyan"><span class="kpi-art art-stack" aria-hidden="true"><i></i><i></i><i></i></span><span class="label">Всего задач</span><strong data-kpi="all"><span id="a-all-18" class="a-alt">18</span><span id="a-all-19" class="a-alt a-off">19</span></strong><span class="kpi-foot">в вашем списке</span></div>
+            <div class="kpi card tilt tone-orange"><span class="kpi-art art-ring" aria-hidden="true"></span><span class="label">В работе</span><strong data-kpi="doing"><span id="a-kd-4" class="a-alt">4</span><span id="a-kd-5" class="a-alt a-off">5</span></strong><span class="kpi-foot" id="kpiDoingFoot">сейчас</span></div>
+            <div class="kpi card tilt tone-lime"><span class="kpi-art art-check" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m5 12 4.5 4.5L19 7"></path></svg></span><span class="label">Сделано</span><strong data-kpi="today"><span id="a-done-2" class="a-alt">2</span><span id="a-done-3" class="a-alt a-off">3</span></strong><span class="kpi-foot">сегодня</span></div>
+            <div class="kpi card tilt tone-pink alert"><span class="kpi-art art-clock" aria-hidden="true"></span><span class="label">Просрочено</span><strong data-kpi="overdue" data-value="1">1</strong><span class="kpi-foot">ждут внимания</span></div>
+          </div>
+        </div>
+<form class="composer card" id="composer" autocomplete="off">
+        <div class="composer-title"><h2>Что сделаем дальше?</h2><span>Одно маленькое дело — ещё один шаг вперёд</span></div>
+        <div class="composer-row">
+          <label class="sr-only" for="taskInput">Новая задача</label>
+          <input id="taskInput" type="text" maxlength="200" placeholder="">
+          <button class="btn-primary" type="submit">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+            <span>Добавить</span>
+          </button>
+        </div>
+        <details class="composer-advanced"><summary>Метка, приоритет и срок</summary><div class="composer-opts">
+          <fieldset class="seg tags" aria-label="Метка">
+            <legend class="sr-only">Метка</legend>
+            <label class="tag-opt"><input type="radio" name="tag" value="work" checked=""><span class="chip tag-work">Работа</span></label>
+            <label class="tag-opt"><input type="radio" name="tag" value="home"><span class="chip tag-home">Личное</span></label>
+            <label class="tag-opt"><input type="radio" name="tag" value="study"><span class="chip tag-study">Учёба</span></label>
+            <label class="tag-opt"><input type="radio" name="tag" value="urgent"><span class="chip tag-urgent">Срочно</span></label>
+          </fieldset>
+          <fieldset class="seg prio" aria-label="Приоритет">
+            <legend class="sr-only">Приоритет</legend>
+            <label><input type="radio" name="prio" value="low"><span><i class="flag p-low"></i>Низкий</span></label>
+            <label><input type="radio" name="prio" value="med" checked=""><span><i class="flag p-med"></i>Средний</span></label>
+            <label><input type="radio" name="prio" value="high"><span><i class="flag p-high"></i>Высокий</span></label>
+          </fieldset>
+          <label class="date-field">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="3"></rect><path d="M3.5 10h17M8 3v4M16 3v4"></path></svg>
+            <span class="sr-only">Срок</span>
+            <input type="date" id="dueInput">
+          </label>
+        </div>
+        <p class="syntax">Быстрый ввод: <code>#личное</code> метка, <code>!</code> высокий приоритет, <code>~</code> низкий, <code>сегодня</code> <code>завтра</code> <code>в пт</code> <code>25.12</code> срок</p>
+</details><div class="parse-preview" id="parsePreview" aria-live="polite"><span class="pv-label a-off" id="a-pv-label">Распознано:</span><span class="chip tag-work a-off" id="a-pv-tag">Работа</span><span class="pchip a-off" id="a-pv-prio"><i class="flag p-high"></i>Высокий</span><span class="due a-off" data-state="soon" id="a-pv-due">Завтра</span></div>
+      </form>
+<div class="toolbar">
+        <div class="pills" id="tagFilter" role="group" aria-label="Фильтр по метке">
+          <button class="pill is-active" data-tag="all">Все</button>
+          <button class="pill" data-tag="work"><i class="dot tag-work"></i>Работа</button>
+          <button class="pill" data-tag="home"><i class="dot tag-home"></i>Личное</button>
+          <button class="pill" data-tag="study"><i class="dot tag-study"></i>Учёба</button>
+          <button class="pill" data-tag="urgent"><i class="dot tag-urgent"></i>Срочно</button>
+        </div>
+        <div class="toolbar-right"><span class="a-grid"><span id="a-vs-board" class="a-alt"><div class="view-switch" role="group" aria-label="Вид задач"><button class="view-button is-active" type="button" data-layout="board" aria-pressed="true">Доска</button><button class="view-button" type="button" data-layout="list" aria-pressed="false">Список</button><button class="view-button" type="button" data-layout="calendar" aria-pressed="true">Календарь</button></div></span><span id="a-vs-cal" class="a-alt a-off"><div class="view-switch" role="group" aria-label="Вид задач"><button class="view-button" type="button" data-layout="board" aria-pressed="false">Доска</button><button class="view-button" type="button" data-layout="list" aria-pressed="false">Список</button><button class="view-button is-active" type="button" data-layout="calendar" aria-pressed="true">Календарь</button></div></span></span><details class="board-actions" open><summary>Ещё</summary><div class="board-actions-menu a-off" id="a-menu"><button type="button" class="btn-ghost telegram-settings"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 11 18-7-4 16-6-5-4 3 1-6 9-5-6 8"></path></svg><span>Telegram-напоминания</span></button><button class="btn-ghost" id="demoBtn" type="button" title="Добавить примерные задачи, сохранив ваши">Добавить примеры</button>
+          <button class="btn-ghost" id="clearDone" type="button">Очистить готовые</button>
+        </div></details></div>
+      </div><section class="board" id="board" aria-label="Канбан">
+        <div class="col" data-status="todo">
+          <header class="col-head"><i class="col-dot"></i><h3>Запланировано</h3><span class="count" data-count="todo"><span id="a-todo-6" class="a-alt">6</span><span id="a-todo-7" class="a-alt a-off">7</span></span></header>
+          <ul class="col-list" data-status="todo"><li class="card-item" tabindex="0" data-id="digitaltodo-demo-v1-01" data-status="todo" aria-label="Подготовить презентацию проекта, К выполнению, метка Работа, Высокий приоритет, срок Завтра, подзадачи 1 из 3" style="--c: var(--tag-work);">
+      <span class="ci-accent" aria-hidden="true"></span>
+      <div class="ci-top">
+        <button class="ci-start" type="button" aria-label="Взять в работу: Подготовить презентацию проекта"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"></path></svg></button>
+        <label class="check" hidden="">
+          <input type="checkbox" tabindex="-1">
+          <span class="box" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>
+        </label>
+        <p class="ci-text">Подготовить презентацию проекта</p>
+        <i class="flag p-high" aria-hidden="true" title="Высокий приоритет"></i>
+      </div>
+      <div class="ci-meta">
+        <span class="chip tag-work">Работа</span>
+        <span class="due" data-state="soon">Завтра</span>
+        <span class="subs" style="--p: 33.33333333333333%;"><i class="sub-ring"></i><span>1/3</span></span>
+      </div>
+    </li><li class="card-item" tabindex="0" data-id="digitaltodo-demo-v1-02" data-status="todo" aria-label="Обновить портфолио, К выполнению, метка Работа, Средний приоритет, срок 5 нояб" style="--c: var(--tag-work);">
+      <span class="ci-accent" aria-hidden="true"></span>
+      <div class="ci-top">
+        <button class="ci-start" type="button" aria-label="Взять в работу: Обновить портфолио"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"></path></svg></button>
+        <label class="check" hidden="">
+          <input type="checkbox" tabindex="-1">
+          <span class="box" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>
+        </label>
+        <p class="ci-text">Обновить портфолио</p>
+        <i class="flag p-med" aria-hidden="true" title="Средний приоритет"></i>
+      </div>
+      <div class="ci-meta">
+        <span class="chip tag-work">Работа</span>
+        <span class="due" data-state="later">5 нояб</span>
+        <span class="subs" hidden=""><i class="sub-ring"></i><span></span></span>
+      </div>
+    </li><li class="card-item" tabindex="0" data-id="digitaltodo-demo-v1-03" data-status="todo" aria-label="Прочитать главу про замыкания, К выполнению, метка Учёба, Средний приоритет, срок 4 нояб, подзадачи 0 из 3" style="--c: var(--tag-study);">
+      <span class="ci-accent" aria-hidden="true"></span>
+      <div class="ci-top">
+        <button class="ci-start" type="button" aria-label="Взять в работу: Прочитать главу про замыкания"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"></path></svg></button>
+        <label class="check" hidden="">
+          <input type="checkbox" tabindex="-1">
+          <span class="box" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>
+        </label>
+        <p class="ci-text">Прочитать главу про замыкания</p>
+        <i class="flag p-med" aria-hidden="true" title="Средний приоритет"></i>
+      </div>
+      <div class="ci-meta">
+        <span class="chip tag-study">Учёба</span>
+        <span class="due" data-state="soon">4 нояб</span>
+        <span class="subs" style="--p: 0%;"><i class="sub-ring"></i><span>0/3</span></span>
+      </div>
+    </li><li class="card-item" tabindex="0" data-id="digitaltodo-demo-v1-04" data-status="todo" aria-label="Запланировать тренировку, К выполнению, метка Личное, Низкий приоритет, срок Завтра" style="--c: var(--tag-home);">
+      <span class="ci-accent" aria-hidden="true"></span>
+      <div class="ci-top">
+        <button class="ci-start" type="button" aria-label="Взять в работу: Запланировать тренировку"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"></path></svg></button>
+        <label class="check" hidden="">
+          <input type="checkbox" tabindex="-1">
+          <span class="box" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>
+        </label>
+        <p class="ci-text">Запланировать тренировку</p>
+        <i class="flag p-low" aria-hidden="true" title="Низкий приоритет"></i>
+      </div>
+      <div class="ci-meta">
+        <span class="chip tag-home">Личное</span>
+        <span class="due" data-state="soon">Завтра</span>
+        <span class="subs" hidden=""><i class="sub-ring"></i><span></span></span>
+      </div>
+    </li><li class="card-item" tabindex="0" data-id="digitaltodo-demo-v1-05" data-status="todo" aria-label="Разобрать входящие письма, К выполнению, метка Срочно, Высокий приоритет, срок Вчера" style="--c: var(--tag-urgent);">
+      <span class="ci-accent" aria-hidden="true"></span>
+      <div class="ci-top">
+        <button class="ci-start" type="button" aria-label="Взять в работу: Разобрать входящие письма"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"></path></svg></button>
+        <label class="check" hidden="">
+          <input type="checkbox" tabindex="-1">
+          <span class="box" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>
+        </label>
+        <p class="ci-text">Разобрать входящие письма</p>
+        <i class="flag p-high" aria-hidden="true" title="Высокий приоритет"></i>
+      </div>
+      <div class="ci-meta">
+        <span class="chip tag-urgent">Срочно</span>
+        <span class="due" data-state="overdue">Вчера</span>
+        <span class="subs" hidden=""><i class="sub-ring"></i><span></span></span>
+      </div>
+    </li><li class="card-item" tabindex="0" data-id="digitaltodo-demo-v1-06" data-status="todo" aria-label="Составить список покупок, К выполнению, метка Личное, Низкий приоритет, срок 4 нояб, подзадачи 1 из 3" style="--c: var(--tag-home);">
+      <span class="ci-accent" aria-hidden="true"></span>
+      <div class="ci-top">
+        <button class="ci-start" type="button" aria-label="Взять в работу: Составить список покупок"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"></path></svg></button>
+        <label class="check" hidden="">
+          <input type="checkbox" tabindex="-1">
+          <span class="box" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>
+        </label>
+        <p class="ci-text">Составить список покупок</p>
+        <i class="flag p-low" aria-hidden="true" title="Низкий приоритет"></i>
+      </div>
+      <div class="ci-meta">
+        <span class="chip tag-home">Личное</span>
+        <span class="due" data-state="soon">4 нояб</span>
+        <span class="subs" style="--p: 33.33333333333333%;"><i class="sub-ring"></i><span>1/3</span></span>
+      </div>
+    </li></ul>
+        </div>
+        <div class="col" data-status="doing">
+          <header class="col-head"><i class="col-dot"></i><h3>В работе</h3><span class="count" data-count="doing"><span id="a-doing-4" class="a-alt">4</span><span id="a-doing-5" class="a-alt a-off">5</span></span></header>
+          <ul class="col-list" data-status="doing"><li class="card-item" tabindex="0" data-id="digitaltodo-demo-v1-07" data-status="doing" aria-label="Проверить мобильную версию, В работе, метка Работа, Высокий приоритет, срок Сегодня, подзадачи 1 из 3" style="--c: var(--tag-work);">
+      <span class="ci-accent" aria-hidden="true"></span>
+      <div class="ci-top">
+        <button class="ci-start" type="button" aria-label="Взять в работу: Проверить мобильную версию" hidden=""><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"></path></svg></button>
+        <label class="check">
+          <input type="checkbox" tabindex="-1">
+          <span class="box" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>
+        </label>
+        <p class="ci-text">Проверить мобильную версию</p>
+        <i class="flag p-high" aria-hidden="true" title="Высокий приоритет"></i>
+      </div>
+      <div class="ci-meta">
+        <span class="chip tag-work">Работа</span>
+        <span class="due" data-state="today">Сегодня</span>
+        <span class="subs" style="--p: 33.33333333333333%;"><i class="sub-ring"></i><span>1/3</span></span>
+      </div>
+    </li><li class="card-item" tabindex="0" data-id="digitaltodo-demo-v1-08" data-status="doing" aria-label="Отправить тестовое задание, В работе, метка Срочно, Высокий приоритет, срок Сегодня, подзадачи 2 из 3" style="--c: var(--tag-urgent);">
+      <span class="ci-accent" aria-hidden="true"></span>
+      <div class="ci-top">
+        <button class="ci-start" type="button" aria-label="Взять в работу: Отправить тестовое задание" hidden=""><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"></path></svg></button>
+        <label class="check">
+          <input type="checkbox" tabindex="-1">
+          <span class="box" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>
+        </label>
+        <p class="ci-text">Отправить тестовое задание</p>
+        <i class="flag p-high" aria-hidden="true" title="Высокий приоритет"></i>
+      </div>
+      <div class="ci-meta">
+        <span class="chip tag-urgent">Срочно</span>
+        <span class="due" data-state="today">Сегодня</span>
+        <span class="subs" style="--p: 66.66666666666666%;"><i class="sub-ring"></i><span>2/3</span></span>
+      </div>
+    </li><li class="card-item" tabindex="0" data-id="digitaltodo-demo-v1-09" data-status="doing" aria-label="Изучить анимации интерфейса, В работе, метка Учёба, Средний приоритет, срок 5 нояб, подзадачи 1 из 2" style="--c: var(--tag-study);">
+      <span class="ci-accent" aria-hidden="true"></span>
+      <div class="ci-top">
+        <button class="ci-start" type="button" aria-label="Взять в работу: Изучить анимации интерфейса" hidden=""><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"></path></svg></button>
+        <label class="check">
+          <input type="checkbox" tabindex="-1">
+          <span class="box" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>
+        </label>
+        <p class="ci-text">Изучить анимации интерфейса</p>
+        <i class="flag p-med" aria-hidden="true" title="Средний приоритет"></i>
+      </div>
+      <div class="ci-meta">
+        <span class="chip tag-study">Учёба</span>
+        <span class="due" data-state="later">5 нояб</span>
+        <span class="subs" style="--p: 50%;"><i class="sub-ring"></i><span>1/2</span></span>
+      </div>
+    </li><li class="card-item" tabindex="0" data-id="digitaltodo-demo-v1-10" data-status="doing" aria-label="Спланировать выходные, В работе, метка Личное, Низкий приоритет, срок 7 нояб" style="--c: var(--tag-home);">
+      <span class="ci-accent" aria-hidden="true"></span>
+      <div class="ci-top">
+        <button class="ci-start" type="button" aria-label="Взять в работу: Спланировать выходные" hidden=""><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"></path></svg></button>
+        <label class="check">
+          <input type="checkbox" tabindex="-1">
+          <span class="box" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>
+        </label>
+        <p class="ci-text">Спланировать выходные</p>
+        <i class="flag p-low" aria-hidden="true" title="Низкий приоритет"></i>
+      </div>
+      <div class="ci-meta">
+        <span class="chip tag-home">Личное</span>
+        <span class="due" data-state="later">7 нояб</span>
+        <span class="subs" hidden=""><i class="sub-ring"></i><span></span></span>
+      </div>
+    </li></ul>
+        </div>
+        <div class="col" data-status="done">
+          <header class="col-head"><i class="col-dot"></i><h3>Готово</h3><span class="count" data-count="done"><span id="a-done-8" class="a-alt">8</span><span id="a-done-9" class="a-alt a-off">9</span></span></header>
+          <ul class="col-list" data-status="done"><li class="card-item done" tabindex="0" data-id="digitaltodo-demo-v1-11" data-status="done" aria-label="Собрать референсы интерфейса, Готово, метка Работа, Средний приоритет, подзадачи 2 из 2" style="--c: var(--tag-work);">
+      <span class="ci-accent" aria-hidden="true"></span>
+      <div class="ci-top">
+        <button class="ci-start" type="button" aria-label="Взять в работу: Собрать референсы интерфейса" hidden=""><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"></path></svg></button>
+        <label class="check">
+          <input type="checkbox" tabindex="-1">
+          <span class="box" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>
+        </label>
+        <p class="ci-text">Собрать референсы интерфейса</p>
+        <i class="flag p-med" aria-hidden="true" title="Средний приоритет"></i>
+      </div>
+      <div class="ci-meta">
+        <span class="chip tag-work">Работа</span>
+        <span class="due" hidden=""></span>
+        <span class="subs" style="--p: 100%;"><i class="sub-ring"></i><span>2/2</span></span>
+      </div>
+    </li><li class="card-item done" tabindex="0" data-id="digitaltodo-demo-v1-12" data-status="done" aria-label="Настроить сохранение задач, Готово, метка Работа, Высокий приоритет" style="--c: var(--tag-work);">
+      <span class="ci-accent" aria-hidden="true"></span>
+      <div class="ci-top">
+        <button class="ci-start" type="button" aria-label="Взять в работу: Настроить сохранение задач" hidden=""><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"></path></svg></button>
+        <label class="check">
+          <input type="checkbox" tabindex="-1">
+          <span class="box" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>
+        </label>
+        <p class="ci-text">Настроить сохранение задач</p>
+        <i class="flag p-high" aria-hidden="true" title="Высокий приоритет"></i>
+      </div>
+      <div class="ci-meta">
+        <span class="chip tag-work">Работа</span>
+        <span class="due" hidden=""></span>
+        <span class="subs" hidden=""><i class="sub-ring"></i><span></span></span>
+      </div>
+    </li><li class="card-item done" tabindex="0" data-id="digitaltodo-demo-v1-13" data-status="done" aria-label="Составить план на неделю, Готово, метка Личное, Средний приоритет" style="--c: var(--tag-home);">
+      <span class="ci-accent" aria-hidden="true"></span>
+      <div class="ci-top">
+        <button class="ci-start" type="button" aria-label="Взять в работу: Составить план на неделю" hidden=""><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"></path></svg></button>
+        <label class="check">
+          <input type="checkbox" tabindex="-1">
+          <span class="box" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>
+        </label>
+        <p class="ci-text">Составить план на неделю</p>
+        <i class="flag p-med" aria-hidden="true" title="Средний приоритет"></i>
+      </div>
+      <div class="ci-meta">
+        <span class="chip tag-home">Личное</span>
+        <span class="due" hidden=""></span>
+        <span class="subs" hidden=""><i class="sub-ring"></i><span></span></span>
+      </div>
+    </li><li class="card-item done" tabindex="0" data-id="digitaltodo-demo-v1-14" data-status="done" aria-label="Повторить методы массивов, Готово, метка Учёба, Средний приоритет, подзадачи 2 из 2" style="--c: var(--tag-study);">
+      <span class="ci-accent" aria-hidden="true"></span>
+      <div class="ci-top">
+        <button class="ci-start" type="button" aria-label="Взять в работу: Повторить методы массивов" hidden=""><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"></path></svg></button>
+        <label class="check">
+          <input type="checkbox" tabindex="-1">
+          <span class="box" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>
+        </label>
+        <p class="ci-text">Повторить методы массивов</p>
+        <i class="flag p-med" aria-hidden="true" title="Средний приоритет"></i>
+      </div>
+      <div class="ci-meta">
+        <span class="chip tag-study">Учёба</span>
+        <span class="due" hidden=""></span>
+        <span class="subs" style="--p: 100%;"><i class="sub-ring"></i><span>2/2</span></span>
+      </div>
+    </li><li class="card-item done" tabindex="0" data-id="digitaltodo-demo-v1-15" data-status="done" aria-label="Подготовить README проекта, Готово, метка Работа, Средний приоритет" style="--c: var(--tag-work);">
+      <span class="ci-accent" aria-hidden="true"></span>
+      <div class="ci-top">
+        <button class="ci-start" type="button" aria-label="Взять в работу: Подготовить README проекта" hidden=""><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"></path></svg></button>
+        <label class="check">
+          <input type="checkbox" tabindex="-1">
+          <span class="box" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>
+        </label>
+        <p class="ci-text">Подготовить README проекта</p>
+        <i class="flag p-med" aria-hidden="true" title="Средний приоритет"></i>
+      </div>
+      <div class="ci-meta">
+        <span class="chip tag-work">Работа</span>
+        <span class="due" hidden=""></span>
+        <span class="subs" hidden=""><i class="sub-ring"></i><span></span></span>
+      </div>
+    </li><li class="card-item done" tabindex="0" data-id="digitaltodo-demo-v1-16" data-status="done" aria-label="Проверить важные ссылки, Готово, метка Срочно, Высокий приоритет" style="--c: var(--tag-urgent);">
+      <span class="ci-accent" aria-hidden="true"></span>
+      <div class="ci-top">
+        <button class="ci-start" type="button" aria-label="Взять в работу: Проверить важные ссылки" hidden=""><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"></path></svg></button>
+        <label class="check">
+          <input type="checkbox" tabindex="-1">
+          <span class="box" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>
+        </label>
+        <p class="ci-text">Проверить важные ссылки</p>
+        <i class="flag p-high" aria-hidden="true" title="Высокий приоритет"></i>
+      </div>
+      <div class="ci-meta">
+        <span class="chip tag-urgent">Срочно</span>
+        <span class="due" hidden=""></span>
+        <span class="subs" hidden=""><i class="sub-ring"></i><span></span></span>
+      </div>
+    </li><li class="card-item done" tabindex="0" data-id="digitaltodo-demo-v1-17" data-status="done" aria-label="Навести порядок в заметках, Готово, метка Личное, Низкий приоритет" style="--c: var(--tag-home);">
+      <span class="ci-accent" aria-hidden="true"></span>
+      <div class="ci-top">
+        <button class="ci-start" type="button" aria-label="Взять в работу: Навести порядок в заметках" hidden=""><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"></path></svg></button>
+        <label class="check">
+          <input type="checkbox" tabindex="-1">
+          <span class="box" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>
+        </label>
+        <p class="ci-text">Навести порядок в заметках</p>
+        <i class="flag p-low" aria-hidden="true" title="Низкий приоритет"></i>
+      </div>
+      <div class="ci-meta">
+        <span class="chip tag-home">Личное</span>
+        <span class="due" hidden=""></span>
+        <span class="subs" hidden=""><i class="sub-ring"></i><span></span></span>
+      </div>
+    </li><li class="card-item done" tabindex="0" data-id="digitaltodo-demo-v1-18" data-status="done" aria-label="Пройти урок по доступности, Готово, метка Учёба, Средний приоритет, подзадачи 2 из 2" style="--c: var(--tag-study);">
+      <span class="ci-accent" aria-hidden="true"></span>
+      <div class="ci-top">
+        <button class="ci-start" type="button" aria-label="Взять в работу: Пройти урок по доступности" hidden=""><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"></path></svg></button>
+        <label class="check">
+          <input type="checkbox" tabindex="-1">
+          <span class="box" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span>
+        </label>
+        <p class="ci-text">Пройти урок по доступности</p>
+        <i class="flag p-med" aria-hidden="true" title="Средний приоритет"></i>
+      </div>
+      <div class="ci-meta">
+        <span class="chip tag-study">Учёба</span>
+        <span class="due" hidden=""></span>
+        <span class="subs" style="--p: 100%;"><i class="sub-ring"></i><span>2/2</span></span>
+      </div>
+    </li></ul>
+        </div>
+      </section><section id="calendar" class="calendar card a-off" aria-label="Календарь задач"><div class="cal-header"><div class="cal-heading"><h2 class="cal-month" id="calendarMonth">ноябрь 2026</h2><p class="cal-summary">11 задач со сроком в этом месяце</p></div><div class="cal-controls" role="group" aria-label="Выбор месяца"><button class="cal-nav" type="button" aria-label="Предыдущий месяц" data-calendar-nav="-1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 6-6 6 6 6"></path></svg></button><button class="cal-today" type="button" data-calendar-today="">Сегодня</button><button class="cal-nav" type="button" aria-label="Следующий месяц" data-calendar-nav="1"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m10 6 6 6-6 6"></path></svg></button></div></div><div class="cal-weekdays" aria-hidden="true"><span>Пн</span><span>Вт</span><span>Ср</span><span>Чт</span><span>Пт</span><span>Сб</span><span>Вс</span></div><div class="cal-grid" aria-labelledby="calendarMonth"><div class="cal-day cal-outside" data-day="2026-10-26"><div class="cal-day-head"><button class="cal-date" type="button" aria-label="понедельник, 26 октября 2026 г.. 0 задач. Показать задачи" data-calendar-date="2026-10-26" aria-pressed="false">26</button><button class="cal-day-add" type="button" aria-label="Добавить задачу: понедельник, 26 октября 2026 г." data-calendar-add="2026-10-26">+</button></div><div class="cal-day-tasks"></div><div class="cal-mobile-dots" aria-hidden="true"></div></div><div class="cal-day cal-outside" data-day="2026-10-27"><div class="cal-day-head"><button class="cal-date" type="button" aria-label="вторник, 27 октября 2026 г.. 0 задач. Показать задачи" data-calendar-date="2026-10-27" aria-pressed="false">27</button><button class="cal-day-add" type="button" aria-label="Добавить задачу: вторник, 27 октября 2026 г." data-calendar-add="2026-10-27">+</button></div><div class="cal-day-tasks"></div><div class="cal-mobile-dots" aria-hidden="true"></div></div><div class="cal-day cal-outside" data-day="2026-10-28"><div class="cal-day-head"><button class="cal-date" type="button" aria-label="среда, 28 октября 2026 г.. 0 задач. Показать задачи" data-calendar-date="2026-10-28" aria-pressed="false">28</button><button class="cal-day-add" type="button" aria-label="Добавить задачу: среда, 28 октября 2026 г." data-calendar-add="2026-10-28">+</button></div><div class="cal-day-tasks"></div><div class="cal-mobile-dots" aria-hidden="true"></div></div><div class="cal-day cal-outside" data-day="2026-10-29"><div class="cal-day-head"><button class="cal-date" type="button" aria-label="четверг, 29 октября 2026 г.. 0 задач. Показать задачи" data-calendar-date="2026-10-29" aria-pressed="false">29</button><button class="cal-day-add" type="button" aria-label="Добавить задачу: четверг, 29 октября 2026 г." data-calendar-add="2026-10-29">+</button></div><div class="cal-day-tasks"></div><div class="cal-mobile-dots" aria-hidden="true"></div></div><div class="cal-day cal-outside" data-day="2026-10-30"><div class="cal-day-head"><button class="cal-date" type="button" aria-label="пятница, 30 октября 2026 г.. 0 задач. Показать задачи" data-calendar-date="2026-10-30" aria-pressed="false">30</button><button class="cal-day-add" type="button" aria-label="Добавить задачу: пятница, 30 октября 2026 г." data-calendar-add="2026-10-30">+</button></div><div class="cal-day-tasks"></div><div class="cal-mobile-dots" aria-hidden="true"></div></div><div class="cal-day cal-outside cal-weekend" data-day="2026-10-31"><div class="cal-day-head"><button class="cal-date" type="button" aria-label="суббота, 31 октября 2026 г.. 0 задач. Показать задачи" data-calendar-date="2026-10-31" aria-pressed="false">31</button><button class="cal-day-add" type="button" aria-label="Добавить задачу: суббота, 31 октября 2026 г." data-calendar-add="2026-10-31">+</button></div><div class="cal-day-tasks"></div><div class="cal-mobile-dots" aria-hidden="true"></div></div><div class="cal-day cal-weekend" data-day="2026-11-01"><div class="cal-day-head"><button class="cal-date" type="button" aria-label="воскресенье, 1 ноября 2026 г.. 1 задача. Показать задачи" data-calendar-date="2026-11-01" aria-pressed="false">1</button><button class="cal-day-add" type="button" aria-label="Добавить задачу: воскресенье, 1 ноября 2026 г." data-calendar-add="2026-11-01">+</button></div><div class="cal-day-tasks"><button class="cal-task cal-tag-urgent" type="button" aria-label="Разобрать входящие письма. К выполнению. Срочно" data-calendar-task="digitaltodo-demo-v1-05"><span class="cal-task-dot" aria-hidden="true"></span><span class="cal-task-title">Разобрать входящие письма</span></button></div><div class="cal-mobile-dots" aria-hidden="true"><i class="cal-tag-urgent"></i></div></div><div class="cal-day cal-is-today" data-day="2026-11-02"><div class="cal-day-head"><button class="cal-date" type="button" aria-label="понедельник, 2 ноября 2026 г.. 2 задачи. Показать задачи" data-calendar-date="2026-11-02" aria-pressed="false" aria-current="date">2</button><button class="cal-day-add" type="button" aria-label="Добавить задачу: понедельник, 2 ноября 2026 г." data-calendar-add="2026-11-02">+</button></div><div class="cal-day-tasks"><button class="cal-task cal-tag-work" type="button" aria-label="Проверить мобильную версию. В работе. Работа" data-calendar-task="digitaltodo-demo-v1-07"><span class="cal-task-dot" aria-hidden="true"></span><span class="cal-task-title">Проверить мобильную версию</span></button><button class="cal-task cal-tag-urgent" type="button" aria-label="Отправить тестовое задание. В работе. Срочно" data-calendar-task="digitaltodo-demo-v1-08"><span class="cal-task-dot" aria-hidden="true"></span><span class="cal-task-title">Отправить тестовое задание</span></button></div><div class="cal-mobile-dots" aria-hidden="true"><i class="cal-tag-work"></i><i class="cal-tag-urgent"></i></div></div><div class="cal-day cal-selected" data-day="2026-11-03"><div class="cal-day-head"><button class="cal-date" type="button" aria-label="вторник, 3 ноября 2026 г.. 3 задачи. Показать задачи" data-calendar-date="2026-11-03" aria-pressed="true">3</button><button class="cal-day-add" type="button" aria-label="Добавить задачу: вторник, 3 ноября 2026 г." data-calendar-add="2026-11-03">+</button></div><div class="cal-day-tasks"><button class="cal-task cal-tag-work" type="button" aria-label="Сдать отчёт. К выполнению. Работа" data-calendar-task="83286336-30c5-4d48-afd8-fce14662c8af"><span class="cal-task-dot" aria-hidden="true"></span><span class="cal-task-title">Сдать отчёт</span></button><button class="cal-task cal-tag-work" type="button" aria-label="Подготовить презентацию проекта. К выполнению. Работа" data-calendar-task="digitaltodo-demo-v1-01"><span class="cal-task-dot" aria-hidden="true"></span><span class="cal-task-title">Подготовить презентацию проекта</span></button><button class="cal-more" type="button" aria-label="Показать все задачи: вторник, 3 ноября 2026 г." data-calendar-date="2026-11-03">+ ещё 1</button></div><div class="cal-mobile-dots" aria-hidden="true"><i class="cal-tag-work"></i><i class="cal-tag-work"></i><i class="cal-tag-home"></i></div></div><div class="cal-day" data-day="2026-11-04"><div class="cal-day-head"><button class="cal-date" type="button" aria-label="среда, 4 ноября 2026 г.. 2 задачи. Показать задачи" data-calendar-date="2026-11-04" aria-pressed="false">4</button><button class="cal-day-add" type="button" aria-label="Добавить задачу: среда, 4 ноября 2026 г." data-calendar-add="2026-11-04">+</button></div><div class="cal-day-tasks"><button class="cal-task cal-tag-study" type="button" aria-label="Прочитать главу про замыкания. К выполнению. Учёба" data-calendar-task="digitaltodo-demo-v1-03"><span class="cal-task-dot" aria-hidden="true"></span><span class="cal-task-title">Прочитать главу про замыкания</span></button><button class="cal-task cal-tag-home" type="button" aria-label="Составить список покупок. К выполнению. Личное" data-calendar-task="digitaltodo-demo-v1-06"><span class="cal-task-dot" aria-hidden="true"></span><span class="cal-task-title">Составить список покупок</span></button></div><div class="cal-mobile-dots" aria-hidden="true"><i class="cal-tag-study"></i><i class="cal-tag-home"></i></div></div><div class="cal-day" data-day="2026-11-05"><div class="cal-day-head"><button class="cal-date" type="button" aria-label="четверг, 5 ноября 2026 г.. 2 задачи. Показать задачи" data-calendar-date="2026-11-05" aria-pressed="false">5</button><button class="cal-day-add" type="button" aria-label="Добавить задачу: четверг, 5 ноября 2026 г." data-calendar-add="2026-11-05">+</button></div><div class="cal-day-tasks"><button class="cal-task cal-tag-work" type="button" aria-label="Обновить портфолио. К выполнению. Работа" data-calendar-task="digitaltodo-demo-v1-02"><span class="cal-task-dot" aria-hidden="true"></span><span class="cal-task-title">Обновить портфолио</span></button><button class="cal-task cal-tag-study" type="button" aria-label="Изучить анимации интерфейса. В работе. Учёба" data-calendar-task="digitaltodo-demo-v1-09"><span class="cal-task-dot" aria-hidden="true"></span><span class="cal-task-title">Изучить анимации интерфейса</span></button></div><div class="cal-mobile-dots" aria-hidden="true"><i class="cal-tag-work"></i><i class="cal-tag-study"></i></div></div><div class="cal-day" data-day="2026-11-06"><div class="cal-day-head"><button class="cal-date" type="button" aria-label="пятница, 6 ноября 2026 г.. 0 задач. Показать задачи" data-calendar-date="2026-11-06" aria-pressed="false">6</button><button class="cal-day-add" type="button" aria-label="Добавить задачу: пятница, 6 ноября 2026 г." data-calendar-add="2026-11-06">+</button></div><div class="cal-day-tasks"></div><div class="cal-mobile-dots" aria-hidden="true"></div></div><div class="cal-day cal-weekend" data-day="2026-11-07"><div class="cal-day-head"><button class="cal-date" type="button" aria-label="суббота, 7 ноября 2026 г.. 1 задача. Показать задачи" data-calendar-date="2026-11-07" aria-pressed="false">7</button><button class="cal-day-add" type="button" aria-label="Добавить задачу: суббота, 7 ноября 2026 г." data-calendar-add="2026-11-07">+</button></div><div class="cal-day-tasks"><button class="cal-task cal-tag-home" type="button" aria-label="Спланировать выходные. В работе. Личное" data-calendar-task="digitaltodo-demo-v1-10"><span class="cal-task-dot" aria-hidden="true"></span><span class="cal-task-title">Спланировать выходные</span></button></div><div class="cal-mobile-dots" aria-hidden="true"><i class="cal-tag-home"></i></div></div><div class="cal-day cal-weekend" data-day="2026-11-08"><div class="cal-day-head"><button class="cal-date" type="button" aria-label="воскресенье, 8 ноября 2026 г.. 0 задач. Показать задачи" data-calendar-date="2026-11-08" aria-pressed="false">8</button><button class="cal-day-add" type="button" aria-label="Добавить задачу: воскресенье, 8 ноября 2026 г." data-calendar-add="2026-11-08">+</button></div><div class="cal-day-tasks"></div><div class="cal-mobile-dots" aria-hidden="true"></div></div><div class="cal-day" data-day="2026-11-09"><div class="cal-day-head"><button class="cal-date" type="button" aria-label="понедельник, 9 ноября 2026 г.. 0 задач. Показать задачи" data-calendar-date="2026-11-09" aria-pressed="false">9</button><button class="cal-day-add" type="button" aria-label="Добавить задачу: понедельник, 9 ноября 2026 г." data-calendar-add="2026-11-09">+</button></div><div class="cal-day-tasks"></div><div class="cal-mobile-dots" aria-hidden="true"></div></div><div class="cal-day" data-day="2026-11-10"><div class="cal-day-head"><button class="cal-date" type="button" aria-label="вторник, 10 ноября 2026 г.. 0 задач. Показать задачи" data-calendar-date="2026-11-10" aria-pressed="false">10</button><button class="cal-day-add" type="button" aria-label="Добавить задачу: вторник, 10 ноября 2026 г." data-calendar-add="2026-11-10">+</button></div><div class="cal-day-tasks"></div><div class="cal-mobile-dots" aria-hidden="true"></div></div><div class="cal-day" data-day="2026-11-11"><div class="cal-day-head"><button class="cal-date" type="button" aria-label="среда, 11 ноября 2026 г.. 0 задач. Показать задачи" data-calendar-date="2026-11-11" aria-pressed="false">11</button><button class="cal-day-add" type="button" aria-label="Добавить задачу: среда, 11 ноября 2026 г." data-calendar-add="2026-11-11">+</button></div><div class="cal-day-tasks"></div><div class="cal-mobile-dots" aria-hidden="true"></div></div><div class="cal-day" data-day="2026-11-12"><div class="cal-day-head"><button class="cal-date" type="button" aria-label="четверг, 12 ноября 2026 г.. 0 задач. Показать задачи" data-calendar-date="2026-11-12" aria-pressed="false">12</button><button class="cal-day-add" type="button" aria-label="Добавить задачу: четверг, 12 ноября 2026 г." data-calendar-add="2026-11-12">+</button></div><div class="cal-day-tasks"></div><div class="cal-mobile-dots" aria-hidden="true"></div></div><div class="cal-day" data-day="2026-11-13"><div class="cal-day-head"><button class="cal-date" type="button" aria-label="пятница, 13 ноября 2026 г.. 0 задач. Показать задачи" data-calendar-date="2026-11-13" aria-pressed="false">13</button><button class="cal-day-add" type="button" aria-label="Добавить задачу: пятница, 13 ноября 2026 г." data-calendar-add="2026-11-13">+</button></div><div class="cal-day-tasks"></div><div class="cal-mobile-dots" aria-hidden="true"></div></div><div class="cal-day cal-weekend" data-day="2026-11-14"><div class="cal-day-head"><button class="cal-date" type="button" aria-label="суббота, 14 ноября 2026 г.. 0 задач. Показать задачи" data-calendar-date="2026-11-14" aria-pressed="false">14</button><button class="cal-day-add" type="button" aria-label="Добавить задачу: суббота, 14 ноября 2026 г." data-calendar-add="2026-11-14">+</button></div><div class="cal-day-tasks"></div><div class="cal-mobile-dots" aria-hidden="true"></div></div><div class="cal-day cal-weekend" data-day="2026-11-15"><div class="cal-day-head"><button class="cal-date" type="button" aria-label="воскресенье, 15 ноября 2026 г.. 0 задач. Показать задачи" data-calendar-date="2026-11-15" aria-pressed="false">15</button><button class="cal-day-add" type="button" aria-label="Добавить задачу: воскресенье, 15 ноября 2026 г." data-calendar-add="2026-11-15">+</button></div><div class="cal-day-tasks"></div><div class="cal-mobile-dots" aria-hidden="true"></div></div><div class="cal-day" data-day="2026-11-16"><div class="cal-day-head"><button class="cal-date" type="button" aria-label="понедельник, 16 ноября 2026 г.. 0 задач. Показать задачи" data-calendar-date="2026-11-16" aria-pressed="false">16</button><button class="cal-day-add" type="button" aria-label="Добавить задачу: понедельник, 16 ноября 2026 г." data-calendar-add="2026-11-16">+</button></div><div class="cal-day-tasks"></div><div class="cal-mobile-dots" aria-hidden="true"></div></div><div class="cal-day" data-day="2026-11-17"><div class="cal-day-head"><button class="cal-date" type="button" aria-label="вторник, 17 ноября 2026 г.. 0 задач. Показать задачи" data-calendar-date="2026-11-17" aria-pressed="false">17</button><button class="cal-day-add" type="button" aria-label="Добавить задачу: вторник, 17 ноября 2026 г." data-calendar-add="2026-11-17">+</button></div><div class="cal-day-tasks"></div><div class="cal-mobile-dots" aria-hidden="true"></div></div><div class="cal-day" data-day="2026-11-18"><div class="cal-day-head"><button class="cal-date" type="button" aria-label="среда, 18 ноября 2026 г.. 0 задач. Показать задачи" data-calendar-date="2026-11-18" aria-pressed="false">18</button><button class="cal-day-add" type="button" aria-label="Добавить задачу: среда, 18 ноября 2026 г." data-calendar-add="2026-11-18">+</button></div><div class="cal-day-tasks"></div><div class="cal-mobile-dots" aria-hidden="true"></div></div><div class="cal-day" data-day="2026-11-19"><div class="cal-day-head"><button class="cal-date" type="button" aria-label="четверг, 19 ноября 2026 г.. 0 задач. Показать задачи" data-calendar-date="2026-11-19" aria-pressed="false">19</button><button class="cal-day-add" type="button" aria-label="Добавить задачу: четверг, 19 ноября 2026 г." data-calendar-add="2026-11-19">+</button></div><div class="cal-day-tasks"></div><div class="cal-mobile-dots" aria-hidden="true"></div></div><div class="cal-day" data-day="2026-11-20"><div class="cal-day-head"><button class="cal-date" type="button" aria-label="пятница, 20 ноября 2026 г.. 0 задач. Показать задачи" data-calendar-date="2026-11-20" aria-pressed="false">20</button><button class="cal-day-add" type="button" aria-label="Добавить задачу: пятница, 20 ноября 2026 г." data-calendar-add="2026-11-20">+</button></div><div class="cal-day-tasks"></div><div class="cal-mobile-dots" aria-hidden="true"></div></div><div class="cal-day cal-weekend" data-day="2026-11-21"><div class="cal-day-head"><button class="cal-date" type="button" aria-label="суббота, 21 ноября 2026 г.. 0 задач. Показать задачи" data-calendar-date="2026-11-21" aria-pressed="false">21</button><button class="cal-day-add" type="button" aria-label="Добавить задачу: суббота, 21 ноября 2026 г." data-calendar-add="2026-11-21">+</button></div><div class="cal-day-tasks"></div><div class="cal-mobile-dots" aria-hidden="true"></div></div><div class="cal-day cal-weekend" data-day="2026-11-22"><div class="cal-day-head"><button class="cal-date" type="button" aria-label="воскресенье, 22 ноября 2026 г.. 0 задач. Показать задачи" data-calendar-date="2026-11-22" aria-pressed="false">22</button><button class="cal-day-add" type="button" aria-label="Добавить задачу: воскресенье, 22 ноября 2026 г." data-calendar-add="2026-11-22">+</button></div><div class="cal-day-tasks"></div><div class="cal-mobile-dots" aria-hidden="true"></div></div><div class="cal-day" data-day="2026-11-23"><div class="cal-day-head"><button class="cal-date" type="button" aria-label="понедельник, 23 ноября 2026 г.. 0 задач. Показать задачи" data-calendar-date="2026-11-23" aria-pressed="false">23</button><button class="cal-day-add" type="button" aria-label="Добавить задачу: понедельник, 23 ноября 2026 г." data-calendar-add="2026-11-23">+</button></div><div class="cal-day-tasks"></div><div class="cal-mobile-dots" aria-hidden="true"></div></div><div class="cal-day" data-day="2026-11-24"><div class="cal-day-head"><button class="cal-date" type="button" aria-label="вторник, 24 ноября 2026 г.. 0 задач. Показать задачи" data-calendar-date="2026-11-24" aria-pressed="false">24</button><button class="cal-day-add" type="button" aria-label="Добавить задачу: вторник, 24 ноября 2026 г." data-calendar-add="2026-11-24">+</button></div><div class="cal-day-tasks"></div><div class="cal-mobile-dots" aria-hidden="true"></div></div><div class="cal-day" data-day="2026-11-25"><div class="cal-day-head"><button class="cal-date" type="button" aria-label="среда, 25 ноября 2026 г.. 0 задач. Показать задачи" data-calendar-date="2026-11-25" aria-pressed="false">25</button><button class="cal-day-add" type="button" aria-label="Добавить задачу: среда, 25 ноября 2026 г." data-calendar-add="2026-11-25">+</button></div><div class="cal-day-tasks"></div><div class="cal-mobile-dots" aria-hidden="true"></div></div><div class="cal-day" data-day="2026-11-26"><div class="cal-day-head"><button class="cal-date" type="button" aria-label="четверг, 26 ноября 2026 г.. 0 задач. Показать задачи" data-calendar-date="2026-11-26" aria-pressed="false">26</button><button class="cal-day-add" type="button" aria-label="Добавить задачу: четверг, 26 ноября 2026 г." data-calendar-add="2026-11-26">+</button></div><div class="cal-day-tasks"></div><div class="cal-mobile-dots" aria-hidden="true"></div></div><div class="cal-day" data-day="2026-11-27"><div class="cal-day-head"><button class="cal-date" type="button" aria-label="пятница, 27 ноября 2026 г.. 0 задач. Показать задачи" data-calendar-date="2026-11-27" aria-pressed="false">27</button><button class="cal-day-add" type="button" aria-label="Добавить задачу: пятница, 27 ноября 2026 г." data-calendar-add="2026-11-27">+</button></div><div class="cal-day-tasks"></div><div class="cal-mobile-dots" aria-hidden="true"></div></div><div class="cal-day cal-weekend" data-day="2026-11-28"><div class="cal-day-head"><button class="cal-date" type="button" aria-label="суббота, 28 ноября 2026 г.. 0 задач. Показать задачи" data-calendar-date="2026-11-28" aria-pressed="false">28</button><button class="cal-day-add" type="button" aria-label="Добавить задачу: суббота, 28 ноября 2026 г." data-calendar-add="2026-11-28">+</button></div><div class="cal-day-tasks"></div><div class="cal-mobile-dots" aria-hidden="true"></div></div><div class="cal-day cal-weekend" data-day="2026-11-29"><div class="cal-day-head"><button class="cal-date" type="button" aria-label="воскресенье, 29 ноября 2026 г.. 0 задач. Показать задачи" data-calendar-date="2026-11-29" aria-pressed="false">29</button><button class="cal-day-add" type="button" aria-label="Добавить задачу: воскресенье, 29 ноября 2026 г." data-calendar-add="2026-11-29">+</button></div><div class="cal-day-tasks"></div><div class="cal-mobile-dots" aria-hidden="true"></div></div><div class="cal-day" data-day="2026-11-30"><div class="cal-day-head"><button class="cal-date" type="button" aria-label="понедельник, 30 ноября 2026 г.. 0 задач. Показать задачи" data-calendar-date="2026-11-30" aria-pressed="false">30</button><button class="cal-day-add" type="button" aria-label="Добавить задачу: понедельник, 30 ноября 2026 г." data-calendar-add="2026-11-30">+</button></div><div class="cal-day-tasks"></div><div class="cal-mobile-dots" aria-hidden="true"></div></div><div class="cal-day cal-outside" data-day="2026-12-01"><div class="cal-day-head"><button class="cal-date" type="button" aria-label="вторник, 1 декабря 2026 г.. 0 задач. Показать задачи" data-calendar-date="2026-12-01" aria-pressed="false">1</button><button class="cal-day-add" type="button" aria-label="Добавить задачу: вторник, 1 декабря 2026 г." data-calendar-add="2026-12-01">+</button></div><div class="cal-day-tasks"></div><div class="cal-mobile-dots" aria-hidden="true"></div></div><div class="cal-day cal-outside" data-day="2026-12-02"><div class="cal-day-head"><button class="cal-date" type="button" aria-label="среда, 2 декабря 2026 г.. 0 задач. Показать задачи" data-calendar-date="2026-12-02" aria-pressed="false">2</button><button class="cal-day-add" type="button" aria-label="Добавить задачу: среда, 2 декабря 2026 г." data-calendar-add="2026-12-02">+</button></div><div class="cal-day-tasks"></div><div class="cal-mobile-dots" aria-hidden="true"></div></div><div class="cal-day cal-outside" data-day="2026-12-03"><div class="cal-day-head"><button class="cal-date" type="button" aria-label="четверг, 3 декабря 2026 г.. 0 задач. Показать задачи" data-calendar-date="2026-12-03" aria-pressed="false">3</button><button class="cal-day-add" type="button" aria-label="Добавить задачу: четверг, 3 декабря 2026 г." data-calendar-add="2026-12-03">+</button></div><div class="cal-day-tasks"></div><div class="cal-mobile-dots" aria-hidden="true"></div></div><div class="cal-day cal-outside" data-day="2026-12-04"><div class="cal-day-head"><button class="cal-date" type="button" aria-label="пятница, 4 декабря 2026 г.. 0 задач. Показать задачи" data-calendar-date="2026-12-04" aria-pressed="false">4</button><button class="cal-day-add" type="button" aria-label="Добавить задачу: пятница, 4 декабря 2026 г." data-calendar-add="2026-12-04">+</button></div><div class="cal-day-tasks"></div><div class="cal-mobile-dots" aria-hidden="true"></div></div><div class="cal-day cal-outside cal-weekend" data-day="2026-12-05"><div class="cal-day-head"><button class="cal-date" type="button" aria-label="суббота, 5 декабря 2026 г.. 0 задач. Показать задачи" data-calendar-date="2026-12-05" aria-pressed="false">5</button><button class="cal-day-add" type="button" aria-label="Добавить задачу: суббота, 5 декабря 2026 г." data-calendar-add="2026-12-05">+</button></div><div class="cal-day-tasks"></div><div class="cal-mobile-dots" aria-hidden="true"></div></div><div class="cal-day cal-outside cal-weekend" data-day="2026-12-06"><div class="cal-day-head"><button class="cal-date" type="button" aria-label="воскресенье, 6 декабря 2026 г.. 0 задач. Показать задачи" data-calendar-date="2026-12-06" aria-pressed="false">6</button><button class="cal-day-add" type="button" aria-label="Добавить задачу: воскресенье, 6 декабря 2026 г." data-calendar-add="2026-12-06">+</button></div><div class="cal-day-tasks"></div><div class="cal-mobile-dots" aria-hidden="true"></div></div></div><div class="cal-agenda"><div class="cal-agenda-head"><h3 class="cal-agenda-title" id="calendarDay">вторник, 3 ноября</h3><button class="cal-add-selected" type="button" data-calendar-add-selected="" aria-label="Добавить задачу: вторник, 3 ноября 2026 г.">+ Добавить задачу</button></div><ul class="cal-agenda-list" aria-labelledby="calendarDay"><li class="cal-agenda-item cal-tag-work"><button class="cal-agenda-task" type="button" aria-label="Открыть задачу: Сдать отчёт" data-calendar-task="83286336-30c5-4d48-afd8-fce14662c8af"><span class="cal-agenda-status cal-status-todo" aria-hidden="true">○</span><span class="cal-agenda-info"><span class="cal-agenda-task-name">Сдать отчёт</span><span class="cal-agenda-meta">К выполнению · Работа · Высокий приоритет</span></span></button></li><li class="cal-agenda-item cal-tag-work"><button class="cal-agenda-task" type="button" aria-label="Открыть задачу: Подготовить презентацию проекта" data-calendar-task="digitaltodo-demo-v1-01"><span class="cal-agenda-status cal-status-todo" aria-hidden="true">○</span><span class="cal-agenda-info"><span class="cal-agenda-task-name">Подготовить презентацию проекта</span><span class="cal-agenda-meta">К выполнению · Работа · Высокий приоритет</span></span></button></li><li class="cal-agenda-item cal-tag-home"><button class="cal-agenda-task" type="button" aria-label="Открыть задачу: Запланировать тренировку" data-calendar-task="digitaltodo-demo-v1-04"><span class="cal-agenda-status cal-status-todo" aria-hidden="true">○</span><span class="cal-agenda-info"><span class="cal-agenda-task-name">Запланировать тренировку</span><span class="cal-agenda-meta">К выполнению · Личное</span></span></button></li></ul></div><p class="cal-footnote">8 задач без даты — назначьте срок в карточке, чтобы увидеть их в календаре.</p></section>
+
+      <p class="hint">Перетаскивайте карточки мышью или пальцем (удержание). С клавиатуры: <kbd>Alt</kbd> + стрелки. <kbd>N</kbd> новая задача, <kbd>Ctrl Z</kbd> отменить удаление</p>
+<section class="insights" aria-label="Ваша статистика">
+<div class="chart card">
+          <div class="card-head">
+            <h2>Активность за неделю</h2>
+            <span class="label" id="weekTotal">8 задач закрыто</span>
+          </div>
+          <div class="bars" id="bars"><div class="bar-col" title="27 октября: 1"><span class="bar-val">1</span><div class="bar-track"><span class="bar-fill" style="height: 33.3333%;"></span></div><span class="bar-day">вт</span></div><div class="bar-col" title="28 октября: 1"><span class="bar-val">1</span><div class="bar-track"><span class="bar-fill" style="height: 33.3333%;"></span></div><span class="bar-day">ср</span></div><div class="bar-col" title="29 октября: 1"><span class="bar-val">1</span><div class="bar-track"><span class="bar-fill" style="height: 33.3333%;"></span></div><span class="bar-day">чт</span></div><div class="bar-col" title="30 октября: 1"><span class="bar-val">1</span><div class="bar-track"><span class="bar-fill" style="height: 33.3333%;"></span></div><span class="bar-day">пт</span></div><div class="bar-col" title="31 октября: 1"><span class="bar-val">1</span><div class="bar-track"><span class="bar-fill" style="height: 33.3333%;"></span></div><span class="bar-day">сб</span></div><div class="bar-col" title="1 ноября: 1"><span class="bar-val">1</span><div class="bar-track"><span class="bar-fill" style="height: 33.3333%;"></span></div><span class="bar-day">вс</span></div><div class="bar-col is-today" title="2 ноября: 2"><span class="bar-val">2</span><div class="bar-track"><span class="bar-fill" style="height: 66.6667%;"></span></div><span class="bar-day">сег</span></div></div>
+        </div>
+        <div class="donut-card card">
+          <div class="card-head"><h2>По меткам</h2></div>
+          <div class="donut-wrap">
+            <svg class="donut" id="donut" viewBox="0 0 120 120" aria-hidden="true"><circle cx="60" cy="60" r="46" class="donut-track"></circle><circle cx="60" cy="60" r="46" class="donut-seg" style="stroke: var(--cyan); stroke-dasharray: 83.708, 289.027; stroke-dashoffset: 0;"></circle><circle cx="60" cy="60" r="46" class="donut-seg" style="stroke: var(--violet); stroke-dasharray: 83.708, 289.027; stroke-dashoffset: -86.708;"></circle><circle cx="60" cy="60" r="46" class="donut-seg" style="stroke: var(--orange); stroke-dasharray: 54.8053, 289.027; stroke-dashoffset: -173.416;"></circle><circle cx="60" cy="60" r="46" class="donut-seg" style="stroke: var(--pink); stroke-dasharray: 54.8053, 289.027; stroke-dashoffset: -231.221;"></circle></svg>
+            <div class="donut-center"><strong id="donutTotal">10</strong><span>активных</span></div>
+          </div>
+          <ul class="legend" id="legend"><li><i class="dot tag-work"></i>Работа<b>3</b></li><li><i class="dot tag-home"></i>Личное<b>3</b></li><li><i class="dot tag-study"></i>Учёба<b>2</b></li><li><i class="dot tag-urgent"></i>Срочно<b>2</b></li></ul>
+        </div>
+</section>
+<div id="a-card" data-layout-ignore>
+  <li id="a-v-todo" class="card-item" data-status="todo" style="--c: var(--tag-work);">
+    <span class="ci-accent" aria-hidden="true"></span>
+    <div class="ci-top">
+      <button class="ci-start" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"></path></svg></button>
+      <label class="check" hidden><input type="checkbox" tabindex="-1"><span class="box" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span></label>
+      <p class="ci-text">Сдать отчёт</p>
+      <i class="flag p-high" aria-hidden="true"></i>
+    </div>
+    <div class="ci-meta">
+      <span class="chip tag-work">Работа</span>
+      <span class="due" data-state="soon">Завтра</span>
+    </div>
+  </li>
+  <li id="a-v-doing" class="card-item" data-status="doing" style="--c: var(--tag-work);">
+    <span class="ci-accent" aria-hidden="true"></span>
+    <div class="ci-top">
+      <button class="ci-start" type="button" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"></path></svg></button>
+      <label class="check"><input type="checkbox" tabindex="-1"><span class="box" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span></label>
+      <p class="ci-text">Сдать отчёт</p>
+      <i class="flag p-high" aria-hidden="true"></i>
+    </div>
+    <div class="ci-meta">
+      <span class="chip tag-work">Работа</span>
+      <span class="due" data-state="soon">Завтра</span>
+    </div>
+  </li>
+  <li id="a-v-checked" class="card-item" data-status="doing" style="--c: var(--tag-work);">
+    <span class="ci-accent" aria-hidden="true"></span>
+    <div class="ci-top">
+      <button class="ci-start" type="button" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"></path></svg></button>
+      <label class="check"><input type="checkbox" tabindex="-1" checked><span class="box" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span></label>
+      <p class="ci-text">Сдать отчёт</p>
+      <i class="flag p-high" aria-hidden="true"></i>
+    </div>
+    <div class="ci-meta">
+      <span class="chip tag-work">Работа</span>
+      <span class="due" data-state="soon">Завтра</span>
+    </div>
+  </li>
+  <li id="a-v-done" class="card-item done" data-status="done" style="--c: var(--tag-work);">
+    <span class="ci-accent" aria-hidden="true"></span>
+    <div class="ci-top">
+      <button class="ci-start" type="button" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"></path></svg></button>
+      <label class="check"><input type="checkbox" tabindex="-1" checked><span class="box" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"></path></svg></span></label>
+      <p class="ci-text">Сдать отчёт</p>
+      <i class="flag p-high" aria-hidden="true"></i>
+    </div>
+    <div class="ci-meta">
+      <span class="chip tag-work">Работа</span>
+      <span class="due" data-state="soon" hidden>Завтра</span>
+    </div>
+  </li></div></div>
+<aside class="work-aside" aria-label="Обзор и ближайшие сроки">
+<div class="scene card is-ready" id="scene">
+          <div id="a-3d-box"><img src="assets/ui/world3d-poster.jpg" alt="" /></div><div class="scene-canvas"><div class="scene-labels" aria-hidden="true" style="pointer-events: none;"><span class="scene-node-label" data-id="digitaltodo-demo-v1-01" title="Подготовить презентацию проекта" data-status="todo" style="left: 67.4px; top: 81.3px; z-index: 17;">Подготовить презентацию проекта</span><span class="scene-node-label" data-id="digitaltodo-demo-v1-02" title="Обновить портфолио" data-status="todo" style="left: 96.8px; top: 110.2px; z-index: 17;">Обновить портфолио</span><span class="scene-node-label" data-id="digitaltodo-demo-v1-03" title="Прочитать главу про замыкания" data-status="todo" style="left: 59.5px; top: 57.7px; z-index: 19;">Прочитать главу про замыкания</span><span class="scene-node-label" data-id="digitaltodo-demo-v1-04" title="Запланировать тренировку" data-status="todo" style="left: 91.3px; top: 169.8px; z-index: 18;">Запланировать тренировку</span><span class="scene-node-label" data-id="digitaltodo-demo-v1-05" title="Разобрать входящие письма" data-status="todo" style="left: 45.7px; top: 145.4px; z-index: 21;">Разобрать входящие письма</span><span class="scene-node-label" data-id="digitaltodo-demo-v1-06" title="Составить список покупок" data-status="todo" style="left: 83.4px; top: 36.3px; z-index: 21;">Составить список покупок</span><span class="scene-node-label" data-id="digitaltodo-demo-v1-07" title="Проверить мобильную версию" data-status="doing" style="left: 148.2px; top: 86px; z-index: 18;">Проверить мобильную версию</span><span class="scene-node-label" data-id="digitaltodo-demo-v1-08" title="Отправить тестовое задание" data-status="doing" style="left: 177.8px; top: 65px; z-index: 18;">Отправить тестовое задание</span><span class="scene-node-label" data-id="digitaltodo-demo-v1-09" title="Изучить анимации интерфейса" data-status="doing" style="left: 146.9px; top: 147.9px; z-index: 20;">Изучить анимации интерфейса</span><span class="scene-node-label" data-id="digitaltodo-demo-v1-10" title="Спланировать выходные" data-status="doing" style="left: 178.8px; top: 176.2px; z-index: 19;">Спланировать выходные</span><span class="scene-node-label" data-id="digitaltodo-demo-v1-11" title="Собрать референсы интерфейса" data-status="done" style="left: 225px; top: 116.1px; z-index: 16;">Собрать референсы интерфейса</span><span class="scene-node-label" data-id="digitaltodo-demo-v1-12" title="Настроить сохранение задач" data-status="done" style="left: 251px; top: 95.1px; z-index: 16;">Настроить сохранение задач</span><span class="scene-node-label" data-id="digitaltodo-demo-v1-13" title="Составить план на неделю" data-status="done" style="left: 230.7px; top: 147.4px; z-index: 17;">Составить план на неделю</span><span class="scene-node-label" data-id="digitaltodo-demo-v1-14" title="Повторить методы массивов" data-status="done" style="left: 259.2px; top: 63.4px; z-index: 17;">Повторить методы массивов</span><span class="scene-node-label" data-id="digitaltodo-demo-v1-15" title="Подготовить README проекта" data-status="done" style="left: 237.7px; top: 33.9px; z-index: 19;">Подготовить README проекта</span><span class="scene-node-label" data-id="digitaltodo-demo-v1-16" title="Проверить важные ссылки" data-status="done" style="left: 269px; top: 180.9px; z-index: 19;">Проверить важные ссылки</span><span class="scene-node-label" data-id="digitaltodo-demo-v1-17" title="Навести порядок в заметках" data-status="done" style="left: 246.2px; top: 217.2px; z-index: 22;">Навести порядок в заметках</span><span class="scene-node-label" data-id="digitaltodo-demo-v1-18" title="Пройти урок по доступности" data-status="done" style="left: 281.1px; top: 238.2px; z-index: 22;">Пройти урок по доступности</span></div></div><button class="scene-expand" id="expandScene" type="button" aria-label="Развернуть 3D-обзор" aria-expanded="false" title="Развернуть 3D-обзор"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5"></path></svg></button>
+          <div class="scene-hud">
+            <div class="hud-title">
+              <span class="live-dot"></span>
+              <span>Маленький мир задач</span>
+            </div>
+
+          </div>
+          <p class="scene-hint">Вращайте фон. Переносите кубы между платформами, чтобы менять статус</p>
+          <div class="scene-tip" hidden=""><strong class="tip-title"></strong><span class="tip-meta"></span></div>
+          <div class="scene-fallback" hidden="">3D недоступно в этом браузере, но всё остальное работает.</div>
+        </div>
+<p class="aside-note">Каждый куб — ваша задача. Маленькие шаги складываются в большие дела.</p>
+<div class="deadlines card">
+          <div class="card-head"><h2>Ближайшие сроки</h2></div>
+          <ul class="dl-list" id="deadlines"><li data-id="digitaltodo-demo-v1-05" tabindex="0" class="dl-item"><i class="dot tag-urgent"></i><span class="dl-text">Разобрать входящие письма</span><span class="due" data-state="overdue">Вчера</span></li><li data-id="digitaltodo-demo-v1-07" tabindex="0" class="dl-item"><i class="dot tag-work"></i><span class="dl-text">Проверить мобильную версию</span><span class="due" data-state="today">Сегодня</span></li><li data-id="digitaltodo-demo-v1-08" tabindex="0" class="dl-item"><i class="dot tag-urgent"></i><span class="dl-text">Отправить тестовое задание</span><span class="due" data-state="today">Сегодня</span></li><li data-id="digitaltodo-demo-v1-01" tabindex="0" class="dl-item"><i class="dot tag-work"></i><span class="dl-text">Подготовить презентацию проекта</span><span class="due" data-state="soon">Завтра</span></li></ul>
+        </div>
+<div class="aside-shortcuts"><h2>Всё под рукой</h2><p><kbd>N</kbd> Новая задача</p><p><kbd>Ctrl K</kbd> Поиск по задачам</p><p><kbd>Alt</kbd> + стрелки — сменить статус</p><p>Нажмите на карточку, чтобы открыть детали, заметки и подзадачи.</p></div>
+</aside>
+</main>
+
+    <footer class="footer">
+      Digital To-Do · Создано с помощью <a href="https://claude.com/claude-code" target="_blank" rel="noopener">Claude Code</a> и <a href="https://openai.com/codex/" target="_blank" rel="noopener">Codex</a>
+    </footer>
+  </div><span id="a-ph">Например, подготовить презентацию #работа завтра</span><span id="a-typed"><span class="ch a-off">С</span><span class="ch a-off">д</span><span class="ch a-off">а</span><span class="ch a-off">т</span><span class="ch a-off">ь</span><span class="ch a-off"> </span><span class="ch a-off">о</span><span class="ch a-off">т</span><span class="ch a-off">ч</span><span class="ch a-off">ё</span><span class="ch a-off">т</span><span class="ch a-off"> </span><span class="ch a-off">#</span><span class="ch a-off">р</span><span class="ch a-off">а</span><span class="ch a-off">б</span><span class="ch a-off">о</span><span class="ch a-off">т</span><span class="ch a-off">а</span><span class="ch a-off"> </span><span class="ch a-off">!</span><span class="ch a-off"> </span><span class="ch a-off">з</span><span class="ch a-off">а</span><span class="ch a-off">в</span><span class="ch a-off">т</span><span class="ch a-off">р</span><span class="ch a-off">а</span></span>
+      <div id="a-pal"><section id="digitalPal" class="digital-pal pal-open" data-state="idle" aria-label="Диди — помощник по задачам" style="--pal-gaze-x: 0px; --pal-gaze-y: 0px; --pal-head-tilt: 0deg;"><div class="pal-observation" role="status" aria-live="polite" hidden=""></div><button class="pal-launcher" type="button" aria-label="Свернуть помощника Диди" aria-expanded="true" aria-controls="palPanel"><!--didi:a-didi-svg--><svg class="pal-robot" id="a-didi-svg" viewBox="0 0 100 112" aria-hidden="true">
+  <defs>
+    <linearGradient id="a-didi-svg-pal-shell" x2=".8" y2="1"><stop stop-color="#d4ecff"/><stop offset=".45" stop-color="#88bdf8"/><stop offset="1" stop-color="#4e8be1"/></linearGradient>
+    <linearGradient id="a-didi-svg-pal-belly" x2=".7" y2="1"><stop stop-color="#f7fbff"/><stop offset="1" stop-color="#c5defb"/></linearGradient>
+    <linearGradient id="a-didi-svg-pal-face" x2=".5" y2="1"><stop stop-color="#254c81"/><stop offset="1" stop-color="#142d52"/></linearGradient>
+  </defs>
+  <ellipse class="pal-shadow" cx="50" cy="104" rx="28" ry="5" fill="#466b9d" opacity=".18"/>
+  <g class="pal-character">
+    <g class="pal-antenna"><path d="M50 16V9" stroke="#659be2" stroke-width="5" stroke-linecap="round"/><circle cx="50" cy="7" r="5" fill="#f6ce68"/></g>
+    <g class="pal-arm pal-arm-left"><rect x="7" y="59" width="14" height="28" rx="7" fill="url(#a-didi-svg-pal-shell)"/></g>
+    <g class="pal-arm pal-arm-right"><rect x="79" y="59" width="14" height="28" rx="7" fill="url(#a-didi-svg-pal-shell)"/></g>
+    <rect class="pal-foot pal-foot-left" x="26" y="91" width="19" height="12" rx="6" fill="#548cda"/>
+    <rect class="pal-foot pal-foot-right" x="55" y="91" width="19" height="12" rx="6" fill="#548cda"/>
+    <rect x="22" y="61" width="56" height="36" rx="18" fill="url(#a-didi-svg-pal-shell)" stroke="#e5f3ff" stroke-width="1.5"/>
+    <rect x="32" y="67" width="36" height="24" rx="11" fill="url(#a-didi-svg-pal-belly)"/>
+    <path d="m43 79 5 5 10-11" fill="none" stroke="#4f93d9" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+    <g class="pal-head"><rect x="13" y="16" width="74" height="53" rx="22" fill="url(#a-didi-svg-pal-shell)" stroke="#e5f3ff" stroke-width="1.5"/>
+    <rect x="23" y="27" width="54" height="29" rx="13" fill="url(#a-didi-svg-pal-face)"/>
+    <g class="pal-eyes"><rect x="35" y="35" width="7" height="11" rx="3.5" fill="#d0f2ff"/><rect x="58" y="35" width="7" height="11" rx="3.5" fill="#d0f2ff"/></g>
+    <path class="pal-smile" d="M46 48q4 3 8 0" fill="none" stroke="#a9e3ff" stroke-width="2" stroke-linecap="round"/>
+    <circle cx="20" cy="45" r="3" fill="#accfff"/><circle cx="80" cy="45" r="3" fill="#accfff"/>
+    <path d="M30 23q12-6 26-3" fill="none" stroke="#f1faff" stroke-width="3" stroke-linecap="round" opacity=".7"/></g>
+  </g>
+</svg><!--/didi--><span class="pal-name">Диди</span></button>
+    <section class="pal-panel" id="palPanel" role="dialog" aria-labelledby="palTitle">
+      <header class="pal-header"><div><h2 id="palTitle">Диди <span>помощник по задачам</span></h2><p class="pal-mode">Помощник по задачам · с AI</p></div><div class="pal-header-actions"><button type="button" class="pal-close" aria-label="Закрыть помощника"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18"></path></svg></button></div></header>
+      <div class="pal-messages" role="log" aria-live="polite" aria-relevant="additions text"><div class="pal-message pal-message-assistant"><strong class="pal-message-label">Диди</strong><p>Привет! Я Диди. Помогу выбрать следующее дело, посчитать прогресс и разобраться с сайтом. С чего начнём?</p></div><div class="pal-message pal-message-user a-off" id="a-msg-user"><strong class="pal-message-label">Вы</strong><p>Какие задачи важнее?</p></div><div class="pal-message pal-message-assistant a-off" id="a-msg-answer"><strong class="pal-message-label">Диди</strong><div class="a-stack"><p id="a-pending">Смотрю ваши задачи…</p><p id="a-answer"><span class="w a-off">Осталось </span><span class="w a-off">10 </span><span class="w a-off">задач. </span><span class="w a-off">Начните </span><span class="w a-off">с </span><span class="w a-off">«Разобрать </span><span class="w a-off">входящие </span><span class="w a-off">письма» </span><span class="w a-off">— </span><span class="w a-off">срок </span><span class="w a-off">был </span><span class="w a-off">вчера. </span><span class="w a-off">Потом </span><span class="w a-off">«Проверить </span><span class="w a-off">мобильную </span><span class="w a-off">версию»: </span><span class="w a-off">она </span><span class="w a-off">на </span><span class="w a-off">сегодня. </span></p></div></div></div>
+      <div class="pal-suggestions" aria-label="Вопросы помощнику"><button type="button" data-question="Сколько задач осталось?">Мой прогресс</button><button type="button" data-question="Какие задачи важнее?">Что важнее?</button><button type="button" data-question="Какие ближайшие сроки?">Сроки</button><button type="button" data-question="Как пользоваться сайтом?">Гид по сайту</button></div>
+      <nav class="pal-guide" aria-label="Перейти к разделу сайта" hidden=""><button type="button" data-tour="new">Новая задача</button><button type="button" data-tour="board">Показать доску</button><button type="button" data-tour="stats">Статистика</button></nav>
+      <form class="pal-form"><label class="sr-only" for="palQuestion">Вопрос помощнику</label><input id="palQuestion" maxlength="1000" placeholder="Спросите про свои задачи…" autocomplete="off"><button type="submit" aria-label="Отправить вопрос"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 14-7-5 14-2-7-7 0zM12 12l7-7"></path></svg></button></form>
+      <p class="pal-privacy">Для ответа AI получает вопрос и список задач. Заметки не передаются.</p>
+    </section></section></div>
+      <div id="a-confetti">
+        <i style="background:#2864df"></i><i style="background:#75c9af"></i><i style="background:#f7ce62"></i>
+        <i style="background:#f2a9bc"></i><i style="background:#7db6ff"></i><i style="background:#2864df"></i>
+        <i style="background:#75c9af"></i><i style="background:#f7ce62"></i><i style="background:#f2a9bc"></i>
+        <i style="background:#7db6ff"></i><i style="background:#2864df"></i><i style="background:#75c9af"></i>
+        <i style="background:#f7ce62"></i><i style="background:#f2a9bc"></i>
+      </div>
+      <svg id="a-cursor" class="a-cur" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M4 2.5v17.2l4.6-4.3 2.9 6.6 3.2-1.4-2.9-6.5h6.3L4 2.5Z" fill="#fff" stroke="#14213d" stroke-width="1.5" stroke-linejoin="round" />
+      </svg>
+    </div>
+    <!-- Screen space: the modal, the phone notification, the live 3D recording. -->
+    <div id="a-tg-back" data-layout-ignore></div>
+    <div id="a-tg-layer" data-layout-ignore data-layout-allow-overflow><dialog id="a-tg" class="telegram-dialog" aria-labelledby="telegram-heading" open=""><div class="telegram-head"><div><h2 id="telegram-heading">Напоминания в Telegram</h2><p>Выберите, о чём и когда напомнить.</p></div><button type="button" class="icon-btn telegram-close" aria-label="Закрыть напоминания">×</button></div><p class="telegram-state" role="status"><span class="a-grid"><span id="a-tg-st1" class="a-alt">Telegram подключён. Напоминания придут в ваш личный чат с ботом.</span><span id="a-tg-st2" class="a-alt a-off">Сохранено напоминаний: 1. Они придут в Telegram в выбранное время.</span></span></p><div class="telegram-pair"><button type="button" class="btn-primary small telegram-connect" hidden="">Подключить Telegram</button><a class="telegram-link" hidden="" target="_blank" rel="noopener noreferrer">Открыть бота в Telegram</a><button type="button" class="btn-ghost telegram-disconnect">Отключить</button></div><p class="telegram-privacy">На сервер отправляются только названия выбранных задач и время напоминаний. Заметки остаются в браузере.</p><form class="telegram-form"><div class="telegram-tasks"><div class="a-grid a-tg-row"><div id="a-tg-rowA" class="a-alt"><div class="telegram-task"><label><input type="checkbox"><span>Сдать отчёт</span></label><span class="input a-dt a-dis">03.11.2026 09:00</span></div></div><div id="a-tg-rowB" class="a-alt a-off"><div class="telegram-task"><label><input type="checkbox" checked=""><span>Сдать отчёт</span></label><span class="input a-dt">03.11.2026 09:00</span></div></div></div><div class="telegram-task"><label><input type="checkbox"><span>Подготовить презентацию проекта</span></label><span class="input a-dt">03.11.2026 09:00</span></div><div class="telegram-task"><label><input type="checkbox"><span>Обновить портфолио</span></label><span class="input a-dt">05.11.2026 09:00</span></div><div class="telegram-task"><label><input type="checkbox"><span>Прочитать главу про замыкания</span></label><span class="input a-dt">04.11.2026 09:00</span></div><div class="telegram-task"><label><input type="checkbox"><span>Запланировать тренировку</span></label><span class="input a-dt">03.11.2026 09:00</span></div><div class="telegram-task"><label><input type="checkbox"><span>Разобрать входящие письма</span></label><span class="input a-dt">02.11.2026 20:09</span></div><div class="telegram-task"><label><input type="checkbox"><span>Составить список покупок</span></label><span class="input a-dt">04.11.2026 09:00</span></div><div class="telegram-task"><label><input type="checkbox"><span>Проверить мобильную версию</span></label><span class="input a-dt">02.11.2026 20:09</span></div><div class="telegram-task"><label><input type="checkbox"><span>Отправить тестовое задание</span></label><span class="input a-dt">02.11.2026 20:09</span></div><div class="telegram-task"><label><input type="checkbox"><span>Изучить анимации интерфейса</span></label><span class="input a-dt">05.11.2026 09:00</span></div><div class="telegram-task"><label><input type="checkbox"><span>Спланировать выходные</span></label><span class="input a-dt">07.11.2026 09:00</span></div></div><div class="telegram-foot"><p>Выполненные и удалённые задачи снимаются с напоминаний, пока сайт открыт.</p><button type="submit" class="btn-primary small telegram-save">Сохранить</button></div></form></dialog></div>
+    <div id="a-push" data-layout-ignore>
+      <div id="a-push-icon"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 11 18-7-4 16-6-5-4 3 1-6 9-5-6 8" /></svg></div>
+      <div id="a-push-body">
+        <div id="a-push-top"><b>Telegram</b><span>03.11, 09:00</span></div>
+        <div id="a-push-title">Напоминание Digital To-Do</div>
+        <div id="a-push-text">Сдать отчёт</div>
+      </div>
+    </div>
+    <div id="a-3d-wrap" data-layout-ignore>
+      <video id="a-3d" class="clip" src="assets/ui/world3d.mp4" muted playsinline data-start="23.1" data-duration="2.85" data-track-index="5"></video>
+    </div>
+    <svg id="a-cursor2" class="a-cur" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M4 2.5v17.2l4.6-4.3 2.9 6.6 3.2-1.4-2.9-6.5h6.3L4 2.5Z" fill="#fff" stroke="#14213d" stroke-width="1.5" stroke-linejoin="round" />
+    </svg>
+  </div>
+  <script>
+    (function () {
+      // Element boxes, measured by scripts/measure-ui.mjs.
+      const R = /*RECTS*/{"input":{"x":213,"y":339,"w":975,"h":57},"add":{"x":1198,"y":339,"w":153,"h":56},"inputPad":19,"inputFont":"500 14px Manrope, system-ui, sans-serif","inputLine":18,"todoFirst":{"x":204,"y":642,"w":361,"h":92},"doingFirst":{"x":602,"y":642,"w":361,"h":90},"doneFirst":{"x":999,"y":642,"w":361,"h":90},"cardH":92,"gap":9,"cardOrigin":{"x":160,"y":20,"w":0,"h":0},"boxOff":{"x":14,"y":16,"w":24,"h":24},"progress":{"x":192,"y":110,"w":185,"h":147},"video":{"x":1400,"y":153,"w":326,"h":183},"launcher":{"x":1805,"y":930,"w":70,"h":97},"panel":{"x":1495,"y":163,"w":380,"h":760},"suggest":{"x":1624,"y":704,"w":98,"h":44},"messages":{"x":1496,"y":245,"w":378,"h":454},"board":{"x":192,"y":583,"w":1180,"h":857},"calOrigin":{"x":160,"y":0,"w":1180,"h":1231},"viewCal":{"x":1225,"y":518,"w":80,"h":36},"more":{"x":1316,"y":515,"w":56,"h":44},"tgTrigger":{"x":1191,"y":577,"w":172,"h":44},"cell3":{"x":187,"y":271,"w":155,"h":134},"tg":{"x":0,"y":0,"w":650,"h":1237},"tgCheck":{"x":43,"y":303,"w":19,"h":19},"tgSave":{"x":509,"y":1167,"w":115,"h":44}}/*/RECTS*/;
+      const T0 = 14.0; // film time at which this scene starts
+      const at = (t) => t - T0;
+      const tl = gsap.timeline({ paused: true });
+      const c = (r) => ({ x: r.x + r.w / 2, y: r.y + r.h / 2 });
+
+      // Camera: a page point lands in the centre of the frame at scale s.
+      const cam = (px, py, s) => ({ x: 960 - px * s, y: 540 - py * s, scale: s });
+      const move = (t, dur, px, py, s, ease = "power2.inOut") => tl.to("#a-cam", { ...cam(px, py, s), duration: dur, ease }, at(t));
+      const whip = (t, dur, px, py, s, blur = 6) => {
+        move(t, dur, px, py, s, "power3.inOut");
+        tl.fromTo("#a-cam", { filter: "blur(0px)" }, { keyframes: { filter: [`blur(${blur}px)`, "blur(0px)"] }, duration: dur, ease: "none", immediateRender: false }, at(t));
+      };
+      // Page-space cursor, scaled so it stays ~64 px on screen.
+      const cursor = (t, dur, px, py, s, ease = "power3.out") => tl.to("#a-cursor", { x: px - 6, y: py - 3, scale: 1.6 / s, duration: dur, ease }, at(t));
+      const click = (t, sel = "#a-cursor") => tl.to(sel, { keyframes: { scale: ["*=0.82", "/=0.82"] }, duration: 0.16, ease: "none" }, at(t));
+      const show = (sel, t, d = 0.06) => tl.fromTo(sel, { opacity: 0 }, { opacity: 1, duration: d, ease: "none", immediateRender: false }, at(t));
+      const hide = (sel, t, d = 0.06) => tl.to(sel, { opacity: 0, duration: d, ease: "none" }, at(t));
+      const swap = (from, to, t, d = 0.06) => { show(to, t, d); hide(from, t, d); };
+
+      const input = R.input, slot = R.cardH + R.gap, ic = c(input);
+      gsap.set("#a-cam", { transformOrigin: "0 0", ...cam(ic.x, ic.y, 1.85) });
+      gsap.set("#a-cursor", { transformOrigin: "6px 3px", x: 2400, y: ic.y, scale: 1.6 / 1.85 });
+      gsap.set("#a-cursor2", { transformOrigin: "6px 3px", x: 2300, y: 700, scale: 1.6, opacity: 0 });
+      gsap.set("#calendar", { x: R.board.x - R.calOrigin.x, y: R.board.y - R.calOrigin.y, width: R.board.w });
+
+      // --- 14.0 The field Didi spat out becomes the site around it. ---
+      tl.fromTo("#a-cam", { opacity: 0, filter: "blur(12px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.3, ease: "power2.out" }, at(14.02));
+
+      // --- 14.2 Smart input: type, then the parser names what it understood. ---
+      document.querySelectorAll("#a-typed, #a-ph").forEach((el) => { el.style.font = R.inputFont; el.style.lineHeight = `${R.inputLine}px`; });
+      gsap.set("#a-typed, #a-ph", { x: input.x + R.inputPad, y: input.y + (input.h - R.inputLine) / 2 });
+      hide("#a-ph", 14.2, 0.01);
+      gsap.utils.toArray("#a-typed .ch").forEach((ch, i) => show(ch, 14.22 + i * 0.04, 0.01));
+      show("#a-pv-label", 15.6, 0.12);
+      [["#a-pv-tag", 15.7], ["#a-pv-prio", 16.3], ["#a-pv-due", 17.05]].forEach(([s, t]) =>
+        tl.fromTo(s, { opacity: 0, scale: 0.6 }, { opacity: 1, scale: 1, duration: 0.3, ease: "back.out(2.4)" }, at(t)));
+
+      // --- 17.6 Add: the line leaves the field as a card and lands on the board. ---
+      const add = c(R.add);
+      move(17.1, 0.45, add.x - 330, ic.y + 40, 1.6);
+      tl.set("#a-cursor", { x: add.x + 700, y: add.y + 140, scale: 1.0 }, at(17.05));
+      cursor(17.1, 0.42, add.x + 10, add.y + 6, 1.6);
+      click(17.55);
+      tl.to(".composer .btn-primary", { keyframes: { scale: [0.95, 1] }, duration: 0.18, ease: "none" }, at(17.55));
+      hide("#a-typed", 17.6, 0.1);
+      hide(["#a-pv-label", "#a-pv-tag", "#a-pv-prio", "#a-pv-due"], 17.6, 0.12);
+      show("#a-ph", 17.7, 0.1);
+      // The site's own numbers follow the new task: 8 of 19, 42 %.
+      swap("#a-all-18", "#a-all-19", 17.75); swap("#a-pct-44", "#a-pct-42", 17.75);
+      swap("#a-note-818", "#a-note-819", 17.75); swap("#a-sub-10", "#a-sub-11", 17.75);
+      tl.fromTo("#progressBar", { scaleX: 1, transformOrigin: "0 50%" }, { scaleX: 42 / 44, duration: 0.3, ease: "power2.out" }, at(17.75));
+
+      const todo = R.todoFirst, doing = R.doingFirst, done = R.doneFirst;
+      const cx = (r) => r.x - R.cardOrigin.x, cy = (r) => r.y - R.cardOrigin.y;
+      gsap.set("#a-card", { width: todo.w, height: todo.h });
+      gsap.set("#a-card .card-item", { opacity: 0 });
+      tl.fromTo("#a-card", { x: input.x + 20 - R.cardOrigin.x, y: input.y - R.cardOrigin.y, scale: 0.7, transformOrigin: "0 0" },
+        { x: cx(todo), y: cy(todo), scale: 1, duration: 0.75, ease: "power3.inOut" }, at(17.62));
+      show("#a-v-todo", 17.62, 0.12);
+      move(17.65, 0.75, c(todo).x + 40, todo.y + 210, 1.6);
+      cursor(17.65, 0.75, c(todo).x + 120, todo.y + 360, 1.6, "power2.inOut");
+      tl.to(".col-list[data-status=todo] > li", { y: slot, duration: 0.4, ease: "power3.out" }, at(17.95));
+      swap("#a-todo-6", "#a-todo-7", 18.25);
+      tl.fromTo("#a-v-todo", { outlineColor: "rgba(40,100,223,0)" }, { outlineColor: "rgba(40,100,223,.42)", duration: 0.12, ease: "none" }, at(18.38));
+      tl.to("#a-v-todo", { outlineColor: "rgba(40,100,223,0)", duration: 0.5, ease: "none" }, at(19.2));
+
+      // --- 19.5 «…и в календаре»: click Календарь, the month opens on 3 November. ---
+      const vc = c(R.viewCal), cell = { x: R.board.x + R.cell3.x + R.cell3.w / 2, y: R.board.y + R.cell3.y + R.cell3.h / 2 };
+      move(19.45, 0.5, vc.x - 380, vc.y + 200, 1.45);
+      cursor(19.6, 0.5, vc.x, vc.y + 4, 1.45);
+      click(20.18);
+      swap("#a-vs-board", "#a-vs-cal", 20.22, 0.05);
+      tl.to("#board", { opacity: 0, duration: 0.2, ease: "power1.out" }, at(20.22));
+      tl.to(".insights, .hint", { opacity: 0, duration: 0.2, ease: "none" }, at(20.22));
+      tl.fromTo("#calendar", { opacity: 0, y: R.board.y - R.calOrigin.y + 24 }, { opacity: 1, y: R.board.y - R.calOrigin.y, duration: 0.35, ease: "power3.out", immediateRender: false }, at(20.25));
+      hide("#a-card", 20.22, 0.15);
+      move(20.4, 0.6, cell.x + 260, cell.y - 70, 1.6);
+      tl.to("#a-cursor", { x: cell.x + 60, y: cell.y + 70, scale: 1.0, duration: 0.6, ease: "power2.inOut" }, at(20.4));
+
+      // --- 21.6 «…не забыть»: Ещё → Telegram-напоминания. ---
+      const more = c(R.more), trig = c(R.tgTrigger);
+      move(21.45, 0.45, more.x - 300, more.y + 130, 1.6);
+      cursor(21.5, 0.4, more.x, more.y + 4, 1.6);
+      click(21.92);
+      tl.fromTo("#a-menu", { opacity: 0, y: -8 }, { opacity: 1, y: 0, duration: 0.18, ease: "power3.out" }, at(21.96));
+      cursor(22.02, 0.25, trig.x - 20, trig.y + 2, 1.6);
+      click(22.3);
+      // The modal: screen space, enlarged for reading, anchored at the top centre.
+      const S = 1.5, top1 = 60, dlg = R.tg;
+      const scr = (r, sy) => ({ x: 960 + (r.x + r.w / 2 - dlg.w / 2) * S, y: sy + (r.y + r.h / 2) * S });
+      gsap.set("#a-tg", { left: 960 - dlg.w / 2, top: 0, transformOrigin: "50% 0" });
+      tl.fromTo("#a-tg-back", { opacity: 0 }, { opacity: 1, duration: 0.25, ease: "power1.out" }, at(22.34));
+      tl.fromTo("#a-tg", { opacity: 0, y: top1 + 20, scale: S * 0.96 }, { opacity: 1, y: top1, scale: S, duration: 0.32, ease: "expo.out" }, at(22.34));
+      hide("#a-menu", 22.34, 0.1);
+      tl.to("#a-cursor", { opacity: 0, duration: 0.1, ease: "none" }, at(22.34));
+      const chk = scr(R.tgCheck, top1);
+      tl.fromTo("#a-cursor2", { x: chk.x + 300, y: chk.y + 260, opacity: 0 }, { x: chk.x - 4, y: chk.y - 2, opacity: 1, duration: 0.4, ease: "power3.out" }, at(22.42));
+      click(22.85, "#a-cursor2");
+      swap("#a-tg-rowA", "#a-tg-rowB", 22.88, 0.05);
+      // Down to «Сохранить», click, back up to the confirmation.
+      const top2 = 1010 - (R.tgSave.y + R.tgSave.h) * S, save = scr(R.tgSave, top2);
+      tl.to("#a-tg", { y: top2, duration: 0.45, ease: "power2.inOut" }, at(23.0));
+      tl.to("#a-cursor2", { x: save.x, y: save.y, duration: 0.45, ease: "power2.inOut" }, at(23.0));
+      click(23.5, "#a-cursor2");
+      tl.to("#a-tg .telegram-save", { keyframes: { scale: [0.95, 1] }, duration: 0.18, ease: "none" }, at(23.5));
+      swap("#a-tg-st1", "#a-tg-st2", 23.6, 0.1);
+      tl.to("#a-tg", { y: top1, duration: 0.4, ease: "power2.inOut" }, at(23.62));
+      tl.to("#a-cursor2", { opacity: 0, duration: 0.15, ease: "none" }, at(23.62));
+      // The reminder as it will arrive: the bot's own text.
+      tl.fromTo("#a-push", { opacity: 0, y: -160 }, { opacity: 1, y: 0, duration: 0.45, ease: "expo.out" }, at(24.1));
+      tl.to("#a-push", { opacity: 0, y: -160, duration: 0.3, ease: "power2.in" }, at(25.25));
+
+      // Under the closing modal the view goes back to the board, ready for the drag.
+      const pair = (c(todo).x + c(doing).x) / 2;
+      swap("#a-vs-cal", "#a-vs-board", 24.85, 0.01);
+      tl.set("#calendar", { opacity: 0 }, at(24.85));
+      tl.set(["#board", ".insights", ".hint", "#a-card"], { opacity: 1 }, at(24.85));
+      tl.set("#a-cam", cam(pair, todo.y + 200, 1.45), at(24.86));
+      tl.set("#a-cursor", { x: todo.x + todo.w * 0.55 + 160, y: todo.y + todo.h * 0.45 + 200, scale: 1.6 / 1.45, opacity: 0 }, at(24.86));
+      tl.to("#a-tg", { opacity: 0, scale: S * 0.96, duration: 0.22, ease: "power2.in" }, at(24.9));
+      tl.to("#a-tg-back", { opacity: 0, duration: 0.3, ease: "power1.in" }, at(24.95));
+
+      // --- 25.4 Drag: grab on «Перетащил», drop on «в работе». ---
+      tl.to("#a-cursor", { opacity: 1, duration: 0.1, ease: "none" }, at(25.1));
+      cursor(25.1, 0.32, todo.x + todo.w * 0.55, todo.y + todo.h * 0.45, 1.45);
+      click(25.45);
+      tl.to("#a-card", { scale: 1.035, rotation: -2, duration: 0.15, ease: "power2.out", transformOrigin: "50% 50%" }, at(25.47));
+      tl.to("#a-card", { x: cx(doing), y: cy(doing), duration: 0.8, ease: "power2.inOut" }, at(25.55));
+      tl.to("#a-cursor", { x: `+=${doing.x - todo.x}`, y: `+=${doing.y - todo.y}`, duration: 0.8, ease: "power2.inOut" }, at(25.55));
+      tl.to("#a-card", { scale: 1, rotation: 0, duration: 0.25, ease: "back.out(2)" }, at(26.35));
+      tl.to(".col-list[data-status=todo] > li", { y: 0, duration: 0.4, ease: "power3.out" }, at(25.65));
+      tl.to(".col-list[data-status=doing] > li", { y: slot, duration: 0.4, ease: "power3.out" }, at(25.95));
+      swap("#a-todo-7", "#a-todo-6", 25.7);
+      swap("#a-doing-4", "#a-doing-5", 26.37); swap("#a-kd-4", "#a-kd-5", 26.37);
+      swap("#a-v-todo", "#a-v-doing", 26.35, 0.08);
+
+      // --- 27.3 Done: push in on the checkbox, tick, the site's confetti. ---
+      const box = { x: doing.x + R.boxOff.x + R.boxOff.w / 2, y: doing.y + R.boxOff.y + R.boxOff.h / 2 };
+      move(26.55, 0.5, box.x + 170, box.y + 30, 1.9);
+      cursor(26.8, 0.45, box.x + 2, box.y + 2, 1.9);
+      click(27.3);
+      swap("#a-v-doing", "#a-v-checked", 27.33, 0.04);
+      tl.fromTo("#a-v-checked .box", { scale: 0.75 }, { scale: 1, duration: 0.3, ease: "back.out(3)" }, at(27.33));
+      tl.fromTo("#a-v-checked .box svg", { strokeDashoffset: 24 }, { strokeDashoffset: 0, duration: 0.25, ease: "power2.out" }, at(27.37));
+      gsap.utils.toArray("#a-confetti i").forEach((p, i) => {
+        const a = (i / 14) * Math.PI * 2 + 0.3, r = 34 + (i % 4) * 9;
+        const dx = Math.cos(a) * r, dy = Math.sin(a) * r - 18, t = at(27.35 + (i % 3) * 0.018);
+        gsap.set(p, { x: box.x, y: box.y, opacity: 0, scale: 0.5 });
+        tl.to(p, { opacity: 1, x: box.x + dx * 0.55, y: box.y + dy * 0.55, scale: 0.9, rotation: i * 25, duration: 0.12, ease: "power2.out" }, t);
+        tl.to(p, { x: box.x + dx, y: box.y + dy, scale: 1, rotation: i * 53 + 80, duration: 0.24, ease: "power1.out" }, t + 0.12);
+        tl.to(p, { opacity: 0, y: box.y + dy + 40, scale: 0.65, rotation: i * 53 + 140, duration: 0.3, ease: "power1.in" }, t + 0.36);
+      });
+      swap("#a-done-2", "#a-done-3", 27.4);
+      const pair2 = (c(doing).x + c(done).x) / 2;
+      move(27.8, 0.55, pair2, doing.y + 200, 1.45);
+      tl.to("#a-cursor", { x: "+=260", y: "+=420", opacity: 0, duration: 0.4, ease: "power2.in" }, at(27.75));
+      tl.to("#a-card", { x: cx(done), y: cy(done), duration: 0.5, ease: "power3.inOut" }, at(27.95));
+      tl.to(".col-list[data-status=doing] > li", { y: 0, duration: 0.4, ease: "power3.out" }, at(28.05));
+      tl.to(".col-list[data-status=done] > li", { y: slot, duration: 0.4, ease: "power3.out" }, at(28.07));
+      swap("#a-v-checked", "#a-v-done", 28.22, 0.12);
+      swap("#a-doing-5", "#a-doing-4", 28.1); swap("#a-kd-5", "#a-kd-4", 28.1);
+      swap("#a-done-8", "#a-done-9", 28.35);
+
+      // --- 29.05 Progress: the real arithmetic, 8/19 to 9/19, 42 % to 47 %. ---
+      const pr = R.progress;
+      whip(29.05, 0.5, pr.x + 470, pr.y + pr.h / 2 + 10, 1.75);
+      const roll = ["42", "43", "44b", "45", "46", "47"];
+      roll.slice(1).forEach((n, i) => swap(`#a-pct-${roll[i]}`, `#a-pct-${n}`, 29.75 + i * 0.13, 0.02));
+      tl.to("#progressBar", { scaleX: 47 / 44, duration: 0.65, ease: "power2.out" }, at(29.75));
+      swap("#a-note-819", "#a-note-919", 30.0); swap("#a-sub-11", "#a-sub-10b", 30.0);
+      tl.fromTo(".progress-pct", { scale: 1, transformOrigin: "0% 70%" }, { keyframes: { scale: [1.08, 1] }, duration: 0.35, ease: "power2.out" }, at(30.42));
+
+      // --- 31.6 Didi: click him, ask «Что важнее?», the answer is typed. ---
+      const la = c(R.launcher), sug = c(R.suggest), pan = R.panel, msg = R.messages;
+      whip(31.45, 0.5, la.x - 260, la.y - 180, 1.5);
+      tl.set("#a-cursor", { x: la.x - 400, y: la.y + 300, opacity: 1, scale: 1.6 / 1.5 }, at(31.5));
+      cursor(31.8, 0.42, la.x - 4, la.y - 10, 1.5);
+      click(32.25);
+      tl.fromTo("#a-didi-svg .pal-arm-right", { rotation: 0, svgOrigin: "86 62" }, { keyframes: { rotation: [-140, -110, -140, 0] }, duration: 0.7, ease: "sine.inOut" }, at(32.27));
+      tl.fromTo("#a-didi-svg .pal-eyes", { scaleY: 1, svgOrigin: "50 40" }, { keyframes: { scaleY: [0.1, 1] }, duration: 0.14, ease: "none" }, at(32.6));
+      tl.fromTo("#a-pal .pal-panel", { opacity: 0, scale: 0.92, y: 18, transformOrigin: "100% 100%" },
+        { opacity: 1, scale: 1, y: 0, duration: 0.32, ease: "expo.out" }, at(32.3));
+      cursor(32.55, 0.35, sug.x, sug.y, 1.5);
+      click(32.95);
+      tl.to("#a-pal .pal-suggestions button:nth-child(2)", { keyframes: { scale: [0.94, 1] }, duration: 0.18, ease: "none" }, at(32.95));
+      move(33.05, 0.55, c(pan).x - 20, msg.y + 230, 1.9);
+      tl.to("#a-cursor", { x: "+=300", y: "+=380", opacity: 0, duration: 0.35, ease: "power2.in" }, at(33.05));
+      tl.fromTo("#a-msg-user", { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.25, ease: "power3.out" }, at(33.05));
+      tl.fromTo("#a-msg-answer", { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.25, ease: "power3.out" }, at(33.35));
+      hide("#a-pending", 33.7, 0.1);
+      gsap.utils.toArray("#a-answer .w").forEach((w, i) => show(w, 33.7 + i * 0.07, 0.05));
+
+      // --- 36.0 Into the 3D world, slowly: whip to the cube card, zoom through, stay. ---
+      tl.to("#a-pal .pal-panel", { opacity: 0, scale: 0.92, y: 18, duration: 0.2, ease: "power2.in" }, at(35.85));
+      const v = c(R.video);
+      whip(36.0, 0.4, v.x, v.y, 1.9, 10);
+      move(36.45, 0.8, v.x, v.y, 1920 / R.video.w, "power2.inOut");
+      tl.fromTo("#a-3d-wrap", { opacity: 0 }, { opacity: 1, duration: 0.15, ease: "none" }, at(37.15));
+      tl.fromTo("#a-3d-wrap", { scale: 1 }, { scale: 1.1, duration: 2.8, ease: "sine.inOut", transformOrigin: "50% 55%" }, at(37.15));
+
+      window.__timelines["app"] = tl;
+    })();
+  </script>
+</template>

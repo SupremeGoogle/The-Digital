@@ -1,0 +1,289 @@
+<template>
+  <style>
+    /*FONTS*/@font-face{font-family:"Manrope";font-weight:500;font-style:normal;src:url("assets/fonts/manrope-cyrillic-0.woff2") format("woff2");unicode-range:U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;}
+@font-face{font-family:"Manrope";font-weight:500;font-style:normal;src:url("assets/fonts/manrope-latin-1.woff2") format("woff2");unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+@font-face{font-family:"Manrope";font-weight:600;font-style:normal;src:url("assets/fonts/manrope-cyrillic-0.woff2") format("woff2");unicode-range:U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;}
+@font-face{font-family:"Manrope";font-weight:600;font-style:normal;src:url("assets/fonts/manrope-latin-1.woff2") format("woff2");unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+@font-face{font-family:"Manrope";font-weight:700;font-style:normal;src:url("assets/fonts/manrope-cyrillic-0.woff2") format("woff2");unicode-range:U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;}
+@font-face{font-family:"Manrope";font-weight:700;font-style:normal;src:url("assets/fonts/manrope-latin-1.woff2") format("woff2");unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+@font-face{font-family:"Manrope";font-weight:800;font-style:normal;src:url("assets/fonts/manrope-cyrillic-0.woff2") format("woff2");unicode-range:U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;}
+@font-face{font-family:"Manrope";font-weight:800;font-style:normal;src:url("assets/fonts/manrope-latin-1.woff2") format("woff2");unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+@font-face{font-family:"Nunito";font-weight:800;font-style:normal;src:url("assets/fonts/nunito-cyrillic-2.woff2") format("woff2");unicode-range:U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;}
+@font-face{font-family:"Nunito";font-weight:800;font-style:normal;src:url("assets/fonts/nunito-latin-3.woff2") format("woff2");unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+@font-face{font-family:"Nunito";font-weight:900;font-style:normal;src:url("assets/fonts/nunito-cyrillic-2.woff2") format("woff2");unicode-range:U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;}
+@font-face{font-family:"Nunito";font-weight:900;font-style:normal;src:url("assets/fonts/nunito-latin-3.woff2") format("woff2");unicode-range:U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;}
+/*/FONTS*/
+    #root {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+    }
+    #c-stage {
+      position: absolute;
+      inset: 0;
+    }
+    #c-intro {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 440px;
+      text-align: center;
+      color: #162c60;
+      font: 900 86px/1.15 "Nunito", sans-serif;
+      letter-spacing: -0.035em;
+    }
+    #c-intro-2 {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 380px;
+      text-align: center;
+      color: #162c60;
+      font: 900 74px/1.3 "Nunito", sans-serif;
+      letter-spacing: -0.03em;
+    }
+    #c-intro-2 .hl {
+      padding: 0 18px 6px;
+      border-radius: 16px;
+      background: #2864df;
+      color: #fff;
+    }
+    #c-intro .w,
+    #c-intro-2 .w { display: inline-block; }
+    .stk {
+      position: absolute;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      border-radius: 6px 6px 18px 6px;
+      box-shadow: 0 18px 30px rgba(40, 70, 120, 0.22), 0 2px 4px rgba(40, 70, 120, 0.12);
+      color: #2c2a24;
+      font: 900 34px/1.05 "Nunito", sans-serif;
+      letter-spacing: -0.02em;
+      text-align: center;
+    }
+    .stk::before {
+      content: "";
+      position: absolute;
+      top: -14px;
+      left: 50%;
+      width: 42%;
+      height: 30px;
+      margin-left: -21%;
+      background: rgba(255, 255, 255, 0.55);
+      box-shadow: 0 1px 2px rgba(60, 80, 110, 0.12);
+    }
+    .y { background: linear-gradient(165deg, #fff3a8, #ffe27a 70%, #f6d35e); }
+    .p { background: linear-gradient(165deg, #ffe0e7, #ffc2cf 70%, #f5aebf); }
+    .m { background: linear-gradient(165deg, #e4fbef, #c9f1dd 70%, #b2e6cc); }
+    .b { background: linear-gradient(165deg, #e6f1ff, #cfe3ff 70%, #b9d4fb); }
+    .fly { width: 230px; height: 200px; left: 0; top: 0; font-size: 32px; }
+    .stk .stk-sub { display: block; margin-top: 8px; font: 700 28px/1.2 "Manrope", sans-serif; color: #5b5440; }
+    #c-stamp {
+      position: absolute;
+      left: 640px;
+      top: 470px;
+      padding: 6px 22px;
+      border: 7px solid #d63a4f;
+      border-radius: 14px;
+      color: #d63a4f;
+      font: 900 64px/1 "Nunito", sans-serif;
+      letter-spacing: 0.02em;
+    }
+    #c-sE { color: #c92f45; font-size: 104px; }
+    #c-didi {
+      position: absolute;
+      left: 790px;
+      top: 619px;
+      width: 340px;
+      height: 381px;
+    }
+    #c-didi .pal-robot {
+      width: 340px !important;
+      height: 381px !important;
+      filter: drop-shadow(0 18px 18px rgba(60, 100, 160, 0.18));
+    }
+    #c-didi .pal-robot * {
+      animation: none !important;
+      transition: none !important;
+    }
+    #c-bar {
+      position: absolute;
+      left: 59px;
+      top: 487px;
+      width: 1802px;
+      height: 105px;
+      border-radius: 30px;
+      background: #eaf2fc;
+      border: 2px solid rgba(108, 146, 199, 0.16);
+      box-shadow: inset 6px 6px 13px #b4c9e149, inset -6px -6px 13px #ffffffc4;
+    }
+  </style>
+  <div id="root" data-composition-id="chaos" data-width="1920" data-height="1080">
+    <!-- Calm opening: just words and a quiet voice. -->
+    <div id="c-intro"><span class="w">Знаешь</span> <span class="w">это</span> <span class="w">чувство…</span></div>
+    <div id="c-intro-2"><span class="w">Когда</span> <span class="w">дел</span> <span class="w">так</span> <span class="w hl">много,</span><br /><span class="w">что</span> <span class="w">непонятно,</span> <span class="w">с</span> <span class="w">чего</span> <span class="w">начать?</span></div>
+
+    <div id="c-stage" data-layout-allow-overlap data-layout-allow-overflow data-layout-allow-occlusion>
+      <!-- They gather quietly at the edges while the words are read. -->
+      <div id="c-s1" data-layout-allow-occlusion class="stk y" data-cx="250" data-cy="230" style="left:110px;top:110px;width:280px;height:240px">купить молоко</div>
+      <div id="c-s2" data-layout-allow-occlusion class="stk m" data-cx="1680" data-cy="200" style="left:1540px;top:80px;width:280px;height:240px">ответить Лёхе</div>
+      <div id="c-s3" data-layout-allow-occlusion class="stk b" data-cx="1640" data-cy="870" style="left:1480px;top:740px;width:320px;height:260px">письма<span class="stk-sub">47 штук</span></div>
+      <div id="c-s4" data-layout-allow-occlusion class="stk p" data-cx="280" data-cy="880" style="left:140px;top:760px;width:280px;height:240px">стрижка в&nbsp;сб?</div>
+      <div id="c-s5" data-layout-allow-occlusion class="stk y" data-cx="1210" data-cy="140" style="left:1080px;top:30px;width:260px;height:220px">оплатить интернет</div>
+      <div id="c-s6" data-layout-allow-occlusion class="stk m" data-cx="120" data-cy="560" style="left:0px;top:450px;width:240px;height:220px">презентация в&nbsp;пт</div>
+      <div id="c-s7" data-layout-allow-occlusion class="stk b" data-cx="1810" data-cy="530" style="left:1690px;top:420px;width:240px;height:220px">сдать лабу</div>
+      <div id="c-s8" data-layout-allow-occlusion class="stk p" data-cx="700" data-cy="140" style="left:580px;top:30px;width:240px;height:220px">позвонить маме</div>
+      <div id="c-s9" data-layout-allow-occlusion class="stk y" data-cx="1100" data-cy="950" style="left:980px;top:840px;width:240px;height:220px">тренировка</div>
+      <div id="c-s10" data-layout-allow-occlusion class="stk m" data-cx="760" data-cy="950" style="left:640px;top:840px;width:240px;height:220px">ДЗ по&nbsp;англу</div>
+
+      <!-- Flyers cross the frame on arcs and never stop until Didi pulls the mess in. -->
+      <div id="c-fl1" class="stk fly y">забрать посылку</div>
+      <div id="c-fl2" class="stk fly b">созвон 10:00</div>
+      <div id="c-fl3" class="stk fly p">купить подарок</div>
+      <div id="c-fl4" class="stk fly m">вынести мусор</div>
+      <div id="c-fl5" class="stk fly y">записаться к&nbsp;врачу</div>
+      <div id="c-fl6" class="stk fly b">оплатить свет</div>
+      <div id="c-fl7" class="stk fly p">подготовить доклад</div>
+      <div id="c-fl8" class="stk fly m">сходить в&nbsp;зал</div>
+      <div id="c-fl9" class="stk fly y">сдать книги</div>
+      <div id="c-fl10" class="stk fly b">ответить в&nbsp;чате</div>
+      <div id="c-fl11" class="stk fly p">полить цветы</div>
+      <div id="c-fl12" class="stk fly m">купить билеты</div>
+      <div id="c-fl13" class="stk fly y">почистить фото</div>
+      <div id="c-fl14" class="stk fly b">обновить резюме</div>
+
+      <!-- The voice's own words land on top. -->
+      <div id="c-sA" data-layout-allow-occlusion class="stk y" data-cx="760" data-cy="430" style="left:560px;top:250px;width:400px;height:360px;font-size:58px">Отчёт —<br />сдать</div>
+      <div id="c-stamp" data-layout-allow-occlusion data-cx="760" data-cy="510">ВЧЕРА!</div>
+      <div id="c-sB" data-layout-allow-occlusion class="stk p" data-cx="1240" data-cy="560" style="left:1080px;top:410px;width:320px;height:300px;font-size:50px">корм коту</div>
+      <div id="c-sC" data-layout-allow-occlusion class="stk m" data-cx="500" data-cy="700" style="left:340px;top:560px;width:320px;height:280px;font-size:48px">дедлайн</div>
+      <div id="c-sD" data-layout-allow-occlusion class="stk b" data-cx="1390" data-cy="330" style="left:1210px;top:170px;width:360px;height:320px;font-size:54px">ДЕДЛАЙН</div>
+      <div id="c-sE" data-layout-allow-occlusion class="stk p" data-cx="960" data-cy="610" style="left:620px;top:380px;width:680px;height:460px">ДЕД&shy;ЛАЙН!!!</div>
+    </div>
+    <div id="c-didi"><!--didi:c-didi-svg--><svg class="pal-robot" id="c-didi-svg" viewBox="0 0 100 112" aria-hidden="true">
+  <defs>
+    <linearGradient id="c-didi-svg-pal-shell" x2=".8" y2="1"><stop stop-color="#d4ecff"/><stop offset=".45" stop-color="#88bdf8"/><stop offset="1" stop-color="#4e8be1"/></linearGradient>
+    <linearGradient id="c-didi-svg-pal-belly" x2=".7" y2="1"><stop stop-color="#f7fbff"/><stop offset="1" stop-color="#c5defb"/></linearGradient>
+    <linearGradient id="c-didi-svg-pal-face" x2=".5" y2="1"><stop stop-color="#254c81"/><stop offset="1" stop-color="#142d52"/></linearGradient>
+  </defs>
+  <ellipse class="pal-shadow" cx="50" cy="104" rx="28" ry="5" fill="#466b9d" opacity=".18"/>
+  <g class="pal-character">
+    <g class="pal-antenna"><path d="M50 16V9" stroke="#659be2" stroke-width="5" stroke-linecap="round"/><circle cx="50" cy="7" r="5" fill="#f6ce68"/></g>
+    <g class="pal-arm pal-arm-left"><rect x="7" y="59" width="14" height="28" rx="7" fill="url(#c-didi-svg-pal-shell)"/></g>
+    <g class="pal-arm pal-arm-right"><rect x="79" y="59" width="14" height="28" rx="7" fill="url(#c-didi-svg-pal-shell)"/></g>
+    <rect class="pal-foot pal-foot-left" x="26" y="91" width="19" height="12" rx="6" fill="#548cda"/>
+    <rect class="pal-foot pal-foot-right" x="55" y="91" width="19" height="12" rx="6" fill="#548cda"/>
+    <rect x="22" y="61" width="56" height="36" rx="18" fill="url(#c-didi-svg-pal-shell)" stroke="#e5f3ff" stroke-width="1.5"/>
+    <rect x="32" y="67" width="36" height="24" rx="11" fill="url(#c-didi-svg-pal-belly)"/>
+    <path d="m43 79 5 5 10-11" fill="none" stroke="#4f93d9" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+    <g class="pal-head"><rect x="13" y="16" width="74" height="53" rx="22" fill="url(#c-didi-svg-pal-shell)" stroke="#e5f3ff" stroke-width="1.5"/>
+    <rect x="23" y="27" width="54" height="29" rx="13" fill="url(#c-didi-svg-pal-face)"/>
+    <g class="pal-eyes"><rect x="35" y="35" width="7" height="11" rx="3.5" fill="#d0f2ff"/><rect x="58" y="35" width="7" height="11" rx="3.5" fill="#d0f2ff"/></g>
+    <path class="pal-smile" d="M46 48q4 3 8 0" fill="none" stroke="#a9e3ff" stroke-width="2" stroke-linecap="round"/>
+    <circle cx="20" cy="45" r="3" fill="#accfff"/><circle cx="80" cy="45" r="3" fill="#accfff"/>
+    <path d="M30 23q12-6 26-3" fill="none" stroke="#f1faff" stroke-width="3" stroke-linecap="round" opacity=".7"/></g>
+  </g>
+</svg><!--/didi--></div>
+    <div id="c-bar"></div>
+  </div>
+  <script>
+    (function () {
+      const tl = gsap.timeline({ paused: true });
+      const D = "#c-didi-svg ";
+      const slap = (sel, t, rot, from = 1.5) =>
+        tl.fromTo(sel, { opacity: 0, scale: from, rotation: rot - 10, y: -40 },
+          { opacity: 1, scale: 1, rotation: rot, y: 0, duration: 0.32, ease: "back.out(2)" }, t);
+
+      // --- Calm: words only, the voice is quiet. ---
+      tl.fromTo("#c-intro .w", { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.3, ease: "power2.out", stagger: 0.16 }, 0.4);
+      tl.to("#c-intro", { opacity: 0, filter: "blur(10px)", duration: 0.25, ease: "power2.in" }, 1.75);
+      const w2 = gsap.utils.toArray("#c-intro-2 .w");
+      tl.fromTo(w2.slice(0, 4), { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.28, ease: "power2.out", stagger: 0.12 }, 1.98);
+      tl.fromTo(w2.slice(4), { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.28, ease: "power2.out", stagger: 0.18 }, 2.68);
+      tl.to("#c-intro-2", { opacity: 0, filter: "blur(12px)", duration: 0.3, ease: "power2.in" }, 5.05);
+
+      // The first notes drift in from the edges and sway while the line is read.
+      const edge = [[-300, -120], [300, -120], [260, 200], [-260, 200], [80, -300], [-320, 0], [320, 0], [-60, -300], [60, 300], [-60, 300]];
+      const rots = [-8, 7, -5, 9, -3, 6, -7, 4, -10, 8];
+      for (let i = 1; i <= 10; i++) {
+        const [dx, dy] = edge[i - 1], r = rots[i - 1];
+        tl.fromTo(`#c-s${i}`, { opacity: 0, x: dx, y: dy, rotation: r - 12 },
+          { opacity: 1, x: 0, y: 0, rotation: r, duration: 2.4, ease: "power2.out" }, 2.2 + i * 0.22);
+        tl.to(`#c-s${i}`, { keyframes: { rotation: [r + 3, r - 2, r] }, duration: 2.6, ease: "sine.inOut" }, 4.9 + (i % 3) * 0.1);
+      }
+
+      // --- Chaos: flyers cross the frame on arcs, one after another. ---
+      gsap.utils.toArray("#c-stage .fly").forEach((el, i) => {
+        const fromLeft = i % 2 === 0;
+        const y0 = 120 + ((i * 173) % 820), y1 = 120 + ((i * 311 + 260) % 820);
+        const x0 = fromLeft ? -300 : 2220, x1 = fromLeft ? 2220 : -300;
+        const lift = -160 - (i % 4) * 70, t = 5.2 + i * 0.47, d = 1.5 + (i % 3) * 0.3;
+        const r0 = (i % 2 ? 1 : -1) * (20 + i * 3);
+        gsap.set(el, { x: x0, y: y0, rotation: r0 });
+        tl.fromTo(el, { x: x0, y: y0 }, { keyframes: { x: [x0, (x0 + x1) / 2, x1], y: [y0, (y0 + y1) / 2 + lift, y1] }, duration: d, ease: "none" }, t);
+        tl.fromTo(el, { rotation: r0, scale: 0.85 + (i % 3) * 0.1 }, { rotation: r0 + (fromLeft ? 220 : -220), duration: d, ease: "none" }, t);
+      });
+
+      slap("#c-sA", 5.58, -4);
+      tl.fromTo("#c-stamp", { opacity: 0, scale: 2.4, rotation: -24 },
+        { opacity: 1, scale: 1, rotation: -12, duration: 0.18, ease: "power4.out" }, 5.84);
+      slap("#c-sB", 6.38, 6);
+      slap("#c-sC", 7.22, -10);
+      slap("#c-sD", 8.26, 8);
+      slap("#c-sE", 9.15, -3, 1.9);
+      tl.fromTo("#c-stage", { x: 0 }, { keyframes: { x: [0, -10, 9, -6, 3, 0] }, duration: 0.3, ease: "none" }, 9.2);
+      // The pile jolts with every slap.
+      [5.6, 6.4, 7.24, 8.28, 9.17].forEach((t) =>
+        tl.to("#c-stage", { keyframes: { scale: [1, 1.015, 1] }, duration: 0.25, ease: "none", transformOrigin: "50% 55%" }, t));
+
+      // "Знакомься…": the pile trembles, then Didi bursts out of it.
+      tl.to(["#c-sE", "#c-sC", "#c-s9", "#c-s10"], { keyframes: [
+        { rotation: "+=3", duration: 0.07 }, { rotation: "-=6", duration: 0.08 },
+        { rotation: "+=5", duration: 0.08 }, { rotation: "-=2", duration: 0.07 }], ease: "none" }, 10.75);
+      tl.to("#c-sE", { x: -1300, y: -1000, rotation: -70, duration: 0.5, ease: "power2.in" }, 11.05);
+      tl.to("#c-sC", { x: -260, y: 60, rotation: -30, duration: 0.4, ease: "power3.out" }, 11.08);
+      tl.to("#c-s9", { x: 300, y: 80, rotation: 28, duration: 0.4, ease: "power3.out" }, 11.1);
+      tl.to("#c-s10", { x: -230, y: 120, rotation: -24, duration: 0.4, ease: "power3.out" }, 11.1);
+      tl.fromTo("#c-didi", { y: 560, scaleX: 0.86, scaleY: 1.2, transformOrigin: "50% 100%" },
+        { y: 0, scaleX: 0.92, scaleY: 1.1, duration: 0.3, ease: "power3.out" }, 11.06);
+      tl.to("#c-didi", { scaleX: 1.12, scaleY: 0.86, duration: 0.1, ease: "power2.out" }, 11.36);
+      tl.to("#c-didi", { scaleX: 1, scaleY: 1, duration: 0.35, ease: "back.out(2.5)" }, 11.46);
+      tl.fromTo(D + ".pal-antenna", { rotation: 0, svgOrigin: "50 16" }, { keyframes: { rotation: [14, -10, 5, 0] }, duration: 0.6, ease: "none" }, 11.36);
+      tl.fromTo(D + ".pal-arm-right", { rotation: 0, svgOrigin: "86 62" }, { rotation: -150, duration: 0.16, ease: "power3.out" }, 11.55);
+      tl.to(D + ".pal-arm-right", { keyframes: { rotation: [-118, -152, -120, -150] }, duration: 0.56, ease: "sine.inOut" }, 11.71);
+      tl.to(D + ".pal-arm-right", { rotation: 0, duration: 0.22, ease: "power2.inOut" }, 12.27);
+      tl.fromTo(D + ".pal-head", { rotation: 0, svgOrigin: "50 69" }, { rotation: 7, duration: 0.2, ease: "power2.out" }, 11.6);
+      tl.to(D + ".pal-head", { rotation: 0, duration: 0.3, ease: "power2.inOut" }, 12.2);
+      tl.fromTo(D + ".pal-eyes", { scaleY: 1, svgOrigin: "50 40" }, { keyframes: { scaleY: [0.1, 1] }, duration: 0.14, ease: "none" }, 12.05);
+
+      // "Он разгребает хаос": arms up, everything is pulled into him.
+      tl.to("#c-didi", { scaleX: 1.08, scaleY: 0.9, duration: 0.18, ease: "power2.out" }, 12.45);
+      tl.fromTo(D + ".pal-arm-left", { rotation: 0, svgOrigin: "14 62" }, { rotation: 150, duration: 0.22, ease: "back.out(1.6)" }, 12.47);
+      tl.to(D + ".pal-arm-right", { rotation: -150, duration: 0.22, ease: "back.out(1.6)" }, 12.55);
+      tl.to("#c-didi", { scaleX: 0.96, scaleY: 1.06, duration: 0.25, ease: "power2.out" }, 12.63);
+      const pull = gsap.utils.toArray("#c-stage [data-cx]").filter((el) => el.id !== "c-sE").map((el) => {
+        const dx = 960 - +el.dataset.cx, dy = 880 - +el.dataset.cy;
+        return { el, dx, dy, d: Math.hypot(dx, dy) };
+      }).sort((a, b) => b.d - a.d);
+      pull.forEach(({ el, dx, dy }, i) => {
+        tl.to(el, { x: `+=${dx}`, y: `+=${dy}`, scale: 0.06, rotation: `+=${260 + (i % 4) * 40}`,
+          duration: 0.6, ease: "power3.in" }, 12.65 + i * 0.026);
+        tl.to(el, { opacity: 0, duration: 0.08, ease: "none" }, 13.17 + i * 0.026);
+      });
+      tl.to(D + ".pal-eyes", { scaleY: 0.35, duration: 0.12, ease: "power2.out" }, 12.75);
+      tl.to(D + ".pal-eyes", { scaleY: 1, duration: 0.15, ease: "power2.out" }, 13.55);
+      tl.to("#c-didi", { keyframes: { scaleX: [1.1, 0.95, 1.04, 1], scaleY: [0.9, 1.06, 0.97, 1] }, duration: 0.45, ease: "none" }, 13.2);
+      tl.to([D + ".pal-arm-left", D + ".pal-arm-right"], { rotation: 0, duration: 0.2, ease: "power2.inOut" }, 13.5);
+
+      // The swallowed mess comes out as one clean line: the site's input field.
+      tl.fromTo("#c-bar", { opacity: 0, y: 330, scaleX: 0.03, scaleY: 0.35 },
+        { opacity: 1, y: 0, scaleX: 1, scaleY: 1, duration: 0.48, ease: "power3.out" }, 13.62);
+      tl.to("#c-didi", { keyframes: { x: [0, 380, 900], y: [0, -170, 380] }, duration: 0.42, ease: "power1.in" }, 13.66);
+      tl.to("#c-didi", { scale: 0.55, duration: 0.42, ease: "power1.in" }, 13.66);
+      tl.to("#c-bar", { opacity: 0, duration: 0.18, ease: "power1.in" }, 14.22);
+
+      window.__timelines["chaos"] = tl;
+    })();
+  </script>
+</template>
