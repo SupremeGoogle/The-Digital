@@ -119,7 +119,9 @@ export function createTelegramService(env = process.env, { fetchImpl = fetch, no
       if (!update || typeof update !== 'object' || Array.isArray(update) || !Number.isSafeInteger(update.update_id)) throw new Error('invalid_update');
       // Only our namespaced deep links belong to To-Do. Ordinary messages, callbacks,
       // other applications' /start commands and unknown update types stay untouched.
-      if (!await consumePairing(update, false)) {
+      const owned = await consumePairing(update, false);
+      if (owned?.reply) { send(res, 200, owned.reply); return; }
+      if (!owned) {
         const reply = await forwardUpdate(raw);
         if (reply) {
           res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' });
@@ -181,7 +183,8 @@ export function createTelegramService(env = process.env, { fetchImpl = fetch, no
         const nonce = opaque();
         db.sessions[hash(bearer)] = { chatId: null, pairHash: hash(nonce), pairExpires: now() + PAIR_TTL, reminders: [] };
         persist();
-        send(res, 200, { clientToken: bearer, linkUrl: `https://t.me/${name}?start=dt_${nonce}`, expiresAt: now() + PAIR_TTL });
+        const commandText = `/todo dt_${nonce}`;
+        send(res, 200, { clientToken: bearer, linkUrl: `https://t.me/${name}?text=${encodeURIComponent(commandText)}`, commandText, expiresAt: now() + PAIR_TTL });
         return true;
       }
       const session = authenticated(req);
@@ -217,25 +220,34 @@ export function createTelegramService(env = process.env, { fetchImpl = fetch, no
   async function consumePairing(update, allowLegacy) {
     const message = update.message;
     const text = typeof message?.text === 'string' ? message.text : '';
+    const handled = (chatId, replyText) => ({ handled: true,
+      reply: replyText ? { method: 'sendMessage', chat_id: chatId, text: replyText } : null });
+    const bind = (session, chatId) => {
+      session.chatId = chatId;
+      delete session.pendingChatId;
+      delete session.pendingChatExpires;
+      delete session.pairHash;
+      delete session.pairExpires;
+      persist();
+      return handled(chatId, 'Digital To-Do подключён. Выберите задачи и время напоминания на сайте. Отключить уведомления можно там же.');
+    };
+    const direct = /^\/todo(?:@([A-Za-z0-9_]+))?\s+dt_([A-Za-z0-9_-]{43})\s*$/i.exec(text);
+    if (direct) {
+      if (direct[1] && (!username || direct[1].toLowerCase() !== username.toLowerCase())) return false;
+      if (message.chat?.type !== 'private' || !Number.isSafeInteger(message.chat.id)) return handled();
+      const digest = hash(direct[2]);
+      const session = Object.values(db.sessions).find(item => !item.chatId && item.pairHash === digest && item.pairExpires > now());
+      return session ? bind(session, String(message.chat.id)) : handled();
+    }
     const todo = /^\/todo(?:@([A-Za-z0-9_]+))?\s*$/i.exec(text);
     if (todo) {
       if (message.chat?.type !== 'private' || !Number.isSafeInteger(message.chat.id)) return false;
       if (todo[1] && (!username || todo[1].toLowerCase() !== username.toLowerCase())) return false;
       const chatId = String(message.chat.id);
       const pending = Object.values(db.sessions).find(item => !item.chatId && item.pendingChatId === chatId && item.pendingChatExpires > now());
-      if (pending) {
-        pending.chatId = chatId;
-        delete pending.pendingChatId;
-        delete pending.pendingChatExpires;
-        delete pending.pairHash;
-        delete pending.pairExpires;
-        persist();
-        try { await telegram('sendMessage', { chat_id: chatId, text: 'Digital To-Do подключён. Выберите задачи и время напоминания на сайте. Отключить уведомления можно там же.' }); } catch {}
-        return true;
-      }
+      if (pending) return bind(pending, chatId);
       if (Object.values(db.sessions).some(item => item.chatId === chatId)) {
-        try { await telegram('sendMessage', { chat_id: chatId, text: 'Digital To-Do уже подключён. Настроить напоминания можно на сайте.' }); } catch {}
-        return true;
+        return handled(chatId, 'Digital To-Do уже подключён. Настроить напоминания можно на сайте.');
       }
       // An unrelated chat's /todo command still belongs to the previous application.
       return false;
@@ -245,23 +257,26 @@ export function createTelegramService(env = process.env, { fetchImpl = fetch, no
       (allowLegacy ? /^\/start(?:@[A-Za-z0-9_]+)? ([A-Za-z0-9_-]{43})$/.exec(text) : null);
     if (!own && !match) return false;
     // Expired or malformed To-Do links are still ours and must not trigger the old bot.
-    if (!match || message.chat?.type !== 'private' || !Number.isSafeInteger(message.chat.id)) return true;
+    if (!match || message.chat?.type !== 'private' || !Number.isSafeInteger(message.chat.id)) return handled();
     const digest = hash(match[1]);
     const session = Object.values(db.sessions).find(item => !item.chatId && item.pairHash === digest && item.pairExpires > now());
-    if (!session) return true;
+    if (!session) return handled();
     session.pendingChatId = String(message.chat.id);
     session.pendingChatExpires = session.pairExpires;
     delete session.pairHash;
     persist();
-    try { await telegram('sendMessage', { chat_id: session.pendingChatId, text: 'Для включения напоминаний Digital To-Do отправьте /todo. После этого вернитесь на сайт и выберите задачи.' }); } catch {}
-    return true;
+    return handled(session.pendingChatId, 'Для включения напоминаний Digital To-Do отправьте /todo. После этого вернитесь на сайт и выберите задачи.');
   }
   async function processUpdates() {
     if (webhookMode) return;
     const updates = await telegram('getUpdates', { offset: db.offset, timeout: 20, allowed_updates: ['message'] }, true);
     for (const update of updates) {
       db.offset = Math.max(db.offset, update.update_id + 1);
-      await consumePairing(update, true);
+      const owned = await consumePairing(update, true);
+      if (owned?.reply) {
+        const { method, ...payload } = owned.reply;
+        try { await telegram(method, payload); } catch {}
+      }
     }
     if (updates.length) persist();
   }

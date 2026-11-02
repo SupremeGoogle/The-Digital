@@ -51,8 +51,39 @@ export function initReminders({ mount = document.querySelector('.toolbar-right')
   const connect = dialog.querySelector('.telegram-connect');
   const disconnect = dialog.querySelector('.telegram-disconnect');
   const link = dialog.querySelector('.telegram-link');
+  const confirmCommand = document.createElement('button');
+  confirmCommand.type = 'button';
+  confirmCommand.className = 'btn-ghost telegram-confirm';
+  confirmCommand.textContent = 'Я отправил команду';
+  confirmCommand.hidden = true;
+  link.after(confirmCommand);
   const list = dialog.querySelector('.telegram-tasks');
   const save = dialog.querySelector('.telegram-save');
+  const feedback = document.createElement('p');
+  feedback.className = 'telegram-save-feedback';
+  feedback.setAttribute('role', 'status');
+  feedback.setAttribute('aria-live', 'polite');
+  feedback.hidden = true;
+  dialog.querySelector('.telegram-foot').appendChild(feedback);
+  const commandBox = document.createElement('div');
+  commandBox.className = 'telegram-command';
+  commandBox.hidden = true;
+  commandBox.innerHTML = '<label for="telegram-command-text">Если команда не появилась в Telegram, скопируйте её и отправьте боту:</label><div><input id="telegram-command-text" class="input" readonly aria-label="Команда подключения Telegram"><button class="btn-ghost" type="button">Копировать</button></div>';
+  dialog.querySelector('.telegram-pair').after(commandBox);
+  const commandInput = commandBox.querySelector('input');
+  const copyCommand = commandBox.querySelector('button');
+  const showFeedback = (text, kind = 'success') => { feedback.textContent = text; feedback.dataset.kind = kind; feedback.hidden = false; };
+  copyCommand.addEventListener('click', async () => {
+    try {
+      if (!navigator.clipboard) throw new Error('clipboard_unavailable');
+      await navigator.clipboard.writeText(commandInput.value);
+      copyCommand.textContent = 'Скопировано';
+      state.textContent = 'Команда скопирована. Отправьте её боту в Telegram.';
+    } catch {
+      commandInput.focus(); commandInput.select();
+      state.textContent = 'Скопируйте выделенную команду и отправьте боту в Telegram.';
+    }
+  });
   const persist = () => { try { localStorage.setItem(SCHEDULE_KEY, JSON.stringify(selected)); } catch {} };
   async function api(path, value) {
     if (!base) throw new Error('unconfigured');
@@ -67,6 +98,7 @@ export function initReminders({ mount = document.querySelector('.toolbar-right')
     connect.hidden = connected;
     connect.disabled = !configured;
     disconnect.hidden = !connected;
+    confirmCommand.hidden = connected || !token;
     save.disabled = !connected;
     trigger.classList.toggle('is-connected', connected);
     list.replaceChildren();
@@ -86,8 +118,10 @@ export function initReminders({ mount = document.querySelector('.toolbar-right')
     });
   }
   async function refresh() {
+    const requestedToken = token;
     try {
       const status = await api('/status');
+      if (requestedToken !== token) return;
       configured = status.configured; connected = status.connected;
       if (!configured) state.textContent = 'Telegram ещё не подключён к сайту. Уведомления станут доступны после настройки.';
       else if (connected) {
@@ -105,11 +139,11 @@ export function initReminders({ mount = document.querySelector('.toolbar-right')
         });
         if (selectionChanged) persist();
         state.textContent = failed ? 'Telegram подключён. Некоторые напоминания не удалось доставить — выберите для них новое время.' : 'Telegram подключён. Напоминания придут в ваш личный чат с ботом.';
-        link.hidden = true; clearTimeout(poll); pairing = null;
-      } else state.textContent = status.awaitingCommand ? 'Ссылка подтверждена. Отправьте боту команду /todo, чтобы включить напоминания.' : status.pending ? 'Откройте бота по ссылке, нажмите «Запустить», затем отправьте /todo.' : 'Подключите свой Telegram и разрешите боту отправлять напоминания.';
+        link.hidden = true; commandBox.hidden = true; commandInput.value = ''; clearTimeout(poll); pairing = null;
+      } else state.textContent = status.awaitingCommand ? 'Ссылка подтверждена. Отправьте боту команду /todo, чтобы включить напоминания.' : status.pending ? 'Перейдите по ссылке и отправьте подготовленную команду /todo… в Telegram.' : 'Подключите свой Telegram и разрешите боту отправлять напоминания.';
       paint();
       if (pairing && !connected && Date.now() < pairing.expiresAt) poll = setTimeout(refresh, 3000);
-      else if (pairing && !connected) { link.hidden = true; pairing = null; state.textContent = 'Ссылка истекла. Подключите Telegram ещё раз.'; }
+      else if (pairing && !connected) { link.hidden = true; commandBox.hidden = true; commandInput.value = ''; pairing = null; state.textContent = 'Ссылка истекла. Подключите Telegram ещё раз.'; }
     } catch { state.textContent = base ? 'Сейчас не получается связаться с напоминаниями. Попробуйте позже.' : 'Telegram ещё не подключён к сайту. Ваши задачи продолжают работать.'; configured = false; paint(); }
   }
   function remindersFor(selection) {
@@ -130,35 +164,53 @@ export function initReminders({ mount = document.querySelector('.toolbar-right')
     syncQueue = request;
     return request;
   }
-  trigger.addEventListener('click', () => { draft = { ...selected }; dialog.showModal(); paint(); void refresh(); });
+  trigger.addEventListener('click', () => { draft = { ...selected }; feedback.hidden = true; dialog.showModal(); paint(); void refresh(); });
+  confirmCommand.addEventListener('click', async () => {
+    confirmCommand.disabled = true;
+    clearTimeout(poll);
+    try {
+      await refresh();
+      if (!connected) state.textContent = 'Подключение пока не подтверждено. Отправьте боту полную команду с кодом из поля ниже, затем нажмите эту кнопку ещё раз.';
+    } finally { confirmCommand.disabled = false; }
+  });
+  const refreshOnReturn = () => { if (dialog.open && token && !document.hidden) void refresh(); };
+  window.addEventListener('focus', refreshOnReturn);
+  document.addEventListener('visibilitychange', refreshOnReturn);
   dialog.querySelector('.telegram-close').addEventListener('click', () => dialog.close());
   dialog.addEventListener('click', event => { if (event.target === dialog) { const rect = dialog.getBoundingClientRect(); if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) dialog.close(); } });
   connect.addEventListener('click', async () => {
     connect.disabled = true;
+    commandBox.hidden = true;
     try {
       pairing = await api('/link', {}); token = pairing.clientToken;
       try { localStorage.setItem(TOKEN_KEY, token); } catch {}
       link.href = pairing.linkUrl; link.hidden = false;
-      state.textContent = 'Откройте Telegram по ссылке, нажмите «Запустить», затем отправьте /todo. Ссылка действует 5 минут.';
+      if (/^\/todo dt_[A-Za-z0-9_-]{43}$/.test(pairing.commandText || '')) {
+        commandInput.value = pairing.commandText;
+        copyCommand.textContent = 'Копировать'; commandBox.hidden = false;
+      }
+      state.textContent = 'Перейдите по ссылке и отправьте подготовленную команду /todo… в Telegram. Команда действует 5 минут.';
       clearTimeout(poll); poll = setTimeout(refresh, 2000);
     } catch { state.textContent = 'Подключение пока недоступно. Попробуйте позже.'; }
     finally { connect.disabled = !configured; }
   });
   disconnect.addEventListener('click', async () => {
     disconnect.disabled = true;
-    try { await api('/disconnect', {}); token = null; connected = false; selected = {}; draft = {}; persist(); try { localStorage.removeItem(TOKEN_KEY); } catch {} state.textContent = 'Telegram отключён. Запланированные напоминания удалены.'; paint(); }
+    try { await api('/disconnect', {}); token = null; connected = false; selected = {}; draft = {}; persist(); try { localStorage.removeItem(TOKEN_KEY); } catch {} commandBox.hidden = true; commandInput.value = ''; state.textContent = 'Telegram отключён. Запланированные напоминания удалены.'; paint(); }
     catch { state.textContent = 'Не удалось отключить Telegram. Повторите попытку.'; }
     finally { disconnect.disabled = false; }
   });
   dialog.querySelector('form').addEventListener('submit', async event => {
     event.preventDefault();
+    feedback.hidden = true;
     const activeIds = new Set(store.all().filter(task => task.status !== 'done').map(task => task.id));
-    if (Object.entries(draft).some(([id, at]) => activeIds.has(id) && (!Number.isSafeInteger(at) || at <= Date.now()))) { state.textContent = 'Выберите будущее время для каждого отмеченного напоминания.'; return; }
+    if (Object.entries(draft).some(([id, at]) => activeIds.has(id) && (!Number.isSafeInteger(at) || at <= Date.now()))) { state.textContent = 'Выберите будущее время для каждого отмеченного напоминания.'; showFeedback(state.textContent, 'error'); return; }
     save.disabled = true;
-    try { const count = await sync(draft); state.textContent = count ? `Сохранено напоминаний: ${count}. Они придут в Telegram в выбранное время.` : 'Все напоминания сняты.'; draft = { ...selected }; paint(); }
-    catch { state.textContent = 'Не удалось сохранить. Проверьте подключение и повторите попытку.'; }
+    try { const count = await sync(draft); state.textContent = count ? `Сохранено напоминаний: ${count}.` : 'Все напоминания сняты.'; showFeedback(count === 1 ? 'Напоминание создано' : count ? `Создано напоминаний: ${count}` : 'Все напоминания сняты'); draft = { ...selected }; paint(); }
+    catch { state.textContent = 'Не удалось сохранить. Проверьте подключение и повторите попытку.'; showFeedback(state.textContent, 'error'); }
     finally { save.disabled = !connected; }
   });
+  dialog.querySelector('form').addEventListener('change', () => { feedback.hidden = true; });
   store.subscribe(() => {
     clearTimeout(syncTimer);
     syncTimer = setTimeout(() => { if (connected && Object.keys(selected).length) void sync().catch(() => { if (dialog.open) state.textContent = 'Не удалось обновить напоминания. Откройте настройки и сохраните их ещё раз.'; }); }, 1000);

@@ -18,9 +18,16 @@
 .telegram-task input[type="checkbox"] { flex:none; width:19px; height:19px; accent-color:var(--blue); }
 .telegram-task .input { font-size:12px; padding:10px; min-height:44px; }
 .telegram-task input:disabled { opacity:.55; cursor:default; }
-.telegram-foot { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-top:20px; }
+.telegram-foot { position:sticky; bottom:-25px; display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:12px 16px; margin-top:20px; padding:14px 0; background:var(--surface-solid); }
 .telegram-foot p { margin:0; max-width:350px; font-size:11px; line-height:1.6; color:var(--muted); }
 .telegram-dialog button:disabled { opacity:.5; cursor:not-allowed; }
+.telegram-foot .telegram-save-feedback { flex-basis:100%; max-width:none; margin:0; padding:11px 13px; border:1px solid color-mix(in srgb,var(--mint,#75c9af) 65%,transparent); border-radius:12px; background:color-mix(in srgb,var(--mint,#75c9af) 15%,var(--surface-solid)); color:var(--text); font-size:13px; font-weight:800; }
+.telegram-foot .telegram-save-feedback[data-kind="error"] { border-color:var(--red); background:color-mix(in srgb,var(--red) 9%,var(--surface-solid)); }
+.telegram-command { display:grid; gap:8px; margin-top:13px; }
+.telegram-command label { color:var(--muted); font-size:11px; line-height:1.6; }
+.telegram-command > div { display:flex; gap:8px; }
+.telegram-command input { min-width:0; font-size:11px; }
+.telegram-command button { flex:none; min-height:44px; }
 @media(max-width:640px) { .telegram-dialog { padding:20px 16px; } .telegram-head h2 { font-size:21px; } .telegram-task { grid-template-columns:minmax(0,1fr); gap:10px; } .telegram-task .input { width:100%; } .telegram-foot { flex-direction:column; align-items:stretch; } .telegram-pair { align-items:stretch; flex-direction:column; } .telegram-settings { font-size:11px; } }
 @media(max-width:700px) {
   .toolbar-right { display:grid; grid-template-columns:minmax(0,1fr); gap:10px; width:100%; margin-left:0; }
