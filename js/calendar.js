@@ -1,4 +1,5 @@
 import * as store from './store.js';
+import { downloadCalendar } from './calendar-export.js';
 
 const weekdays = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
 const monthFormat = new Intl.DateTimeFormat('ru-RU', { month: 'long', year: 'numeric' });
@@ -82,8 +83,12 @@ export function initCalendar({ onOpen, onAddDate } = {}) {
   const agendaList = make('ul', 'cal-agenda-list');
   agendaList.setAttribute('aria-labelledby', 'calendarDay');
   const footnote = make('p', 'cal-footnote');
+  const exportButton = button('cal-today cal-export', '↓ В календарь телефона');
+  exportButton.title = 'Скачать активные задачи со сроком в формате .ics';
+  exportButton.addEventListener('click', () => downloadCalendar(filteredTasks()));
+  const exportHint = make('p', 'cal-footnote', 'Откройте скачанный .ics в календарном приложении. Экспортируются активные задачи со сроком с учётом поиска и метки. Это копия: изменения на сайте не обновляют её автоматически.');
   agenda.append(agendaHead, agendaList);
-  host.append(header, week, grid, agenda, footnote);
+  host.append(header, exportButton, exportHint, week, grid, agenda, footnote);
 
   function filteredTasks() {
     const query = String(filters.query || '').trim().toLowerCase();
@@ -98,6 +103,7 @@ export function initCalendar({ onOpen, onAddDate } = {}) {
     const focusedDate = host.contains(document.activeElement) ? document.activeElement.dataset.calendarDate : null;
     const today = isoDate(new Date());
     const tasks = filteredTasks();
+    exportButton.disabled = !tasks.some(task => task.status !== 'done' && parseDate(task.due));
     const byDate = new Map();
     let undated = 0;
     tasks.forEach(task => {

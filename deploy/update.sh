@@ -10,7 +10,8 @@ cd "$repo"
 git fetch --quiet origin main
 revision=$(git rev-parse origin/main)
 release=$base/releases/$revision
-previous=$(readlink -f "$base/current" 2>/dev/null || true)
+previous=''
+if [ -d "$base/current" ]; then previous=$(readlink -f "$base/current"); fi
 if [ "$previous" = "$release" ]; then exit 0; fi
 mkdir -p "$release"
 # Sparse checkout avoids downloading the unrelated large promo video.
