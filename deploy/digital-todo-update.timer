@@ -1,0 +1,12 @@
+[Unit]
+Description=Check Digital To-Do GitHub changes every five minutes
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=5min
+RandomizedDelaySec=15
+Persistent=true
+Unit=digital-todo-update.service
+
+[Install]
+WantedBy=timers.target

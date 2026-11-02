@@ -1,0 +1,25 @@
+[Unit]
+Description=Digital To-Do AI and Telegram API
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=digital-todo
+Group=digital-todo
+WorkingDirectory=/opt/digital-todo/current
+EnvironmentFile=/etc/digital-todo/assistant.env
+ExecStart=/usr/bin/node /opt/digital-todo/current/server/index.mjs
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadOnlyPaths=/opt/digital-todo
+StateDirectory=digital-todo
+StateDirectoryMode=0700
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

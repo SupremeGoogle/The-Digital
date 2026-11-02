@@ -1,0 +1,9 @@
+[Unit]
+Description=Update Digital To-Do from GitHub after tests
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/digital-todo-update
+TimeoutStartSec=180
