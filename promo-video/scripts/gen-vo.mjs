@@ -1,12 +1,12 @@
 // Generates the voiceover line by line through Router AI (ElevenLabs v4).
 // Usage: node --env-file=.env scripts/gen-vo.mjs [lineId ...]
-// Stress is marked with U+0301 after the stressed vowel (дедла́йн, прогре́сс).
+// e1 keeps the pressure relatable, without shouting or an escalating foreign word.
 import fs from 'node:fs';
 
 const VOICE = process.env.VO_VOICE || 'Liam';
 const LINES = {
   c1: '[calm] Знаешь это чувство… Когда дел так много, что непонятно, с чего начать?',
-  e1: 'Отчёт — вчера! Корм коту! Дедла́йн, дедла́йн, ДЕДЛА́ЙН!',
+  e1: '[calm] Отчёт — вчера. Корм коту. Сроки, сроки, сроки.',
   e2: 'Знакомься — это Диди. Он разгребает хаос за тебя.',
   e3: 'Пишешь как думаешь — а метка, приоритет и срок встают сами.',
   e4: 'Задача сразу на доске… и в календаре.',

@@ -84,13 +84,13 @@
       left: 640px;
       top: 470px;
       padding: 6px 22px;
-      border: 7px solid #d63a4f;
+      border: 4px solid #5975a6;
       border-radius: 14px;
-      color: #d63a4f;
-      font: 900 64px/1 "Nunito", sans-serif;
+      color: #5975a6;
+      font: 900 56px/1 "Nunito", sans-serif;
       letter-spacing: 0.02em;
     }
-    #c-sE { color: #c92f45; font-size: 104px; }
+    #c-sE { color: #355e9b; font-size: 84px; }
     #c-didi {
       position: absolute;
       left: 790px;
@@ -155,11 +155,11 @@
 
       <!-- The voice's own words land on top. -->
       <div id="c-sA" data-layout-allow-occlusion class="stk y" data-cx="760" data-cy="430" style="left:560px;top:250px;width:400px;height:360px;font-size:58px">Отчёт —<br />сдать</div>
-      <div id="c-stamp" data-layout-allow-occlusion data-cx="760" data-cy="510">ВЧЕРА!</div>
+      <div id="c-stamp" data-layout-allow-occlusion data-cx="760" data-cy="510">ВЧЕРА</div>
       <div id="c-sB" data-layout-allow-occlusion class="stk p" data-cx="1240" data-cy="560" style="left:1080px;top:410px;width:320px;height:300px;font-size:50px">корм коту</div>
-      <div id="c-sC" data-layout-allow-occlusion class="stk m" data-cx="500" data-cy="700" style="left:340px;top:560px;width:320px;height:280px;font-size:48px">дедлайн</div>
-      <div id="c-sD" data-layout-allow-occlusion class="stk b" data-cx="1390" data-cy="330" style="left:1210px;top:170px;width:360px;height:320px;font-size:54px">ДЕДЛАЙН</div>
-      <div id="c-sE" data-layout-allow-occlusion class="stk p" data-cx="960" data-cy="610" style="left:620px;top:380px;width:680px;height:460px">ДЕД&shy;ЛАЙН!!!</div>
+      <div id="c-sC" data-layout-allow-occlusion class="stk m" data-cx="500" data-cy="700" style="left:340px;top:560px;width:320px;height:280px;font-size:48px">сроки</div>
+      <div id="c-sD" data-layout-allow-occlusion class="stk b" data-cx="1390" data-cy="330" style="left:1210px;top:170px;width:360px;height:320px;font-size:54px">сроки</div>
+      <div id="c-sE" data-layout-allow-occlusion class="stk b" data-cx="960" data-cy="610" style="left:620px;top:380px;width:680px;height:460px">СРОКИ</div>
     </div>
     <div id="c-didi"><!--didi:c-didi-svg--><svg class="pal-robot" id="c-didi-svg" viewBox="0 0 100 112" aria-hidden="true">
   <defs>
@@ -191,9 +191,9 @@
     (function () {
       const tl = gsap.timeline({ paused: true });
       const D = "#c-didi-svg ";
-      const slap = (sel, t, rot, from = 1.5) =>
-        tl.fromTo(sel, { opacity: 0, scale: from, rotation: rot - 10, y: -40 },
-          { opacity: 1, scale: 1, rotation: rot, y: 0, duration: 0.32, ease: "back.out(2)" }, t);
+      const slap = (sel, t, rot, from = 1.16) =>
+        tl.fromTo(sel, { opacity: 0, scale: from, rotation: rot - 4, y: -18 },
+          { opacity: 1, scale: 1, rotation: rot, y: 0, duration: 0.45, ease: "back.out(1.15)" }, t);
 
       // --- Calm: words only, the voice is quiet. ---
       tl.fromTo("#c-intro .w", { opacity: 0, filter: "blur(8px)" }, { opacity: 1, filter: "blur(0px)", duration: 0.3, ease: "power2.out", stagger: 0.16 }, 0.4);
@@ -226,16 +226,16 @@
       });
 
       slap("#c-sA", 5.58, -4);
-      tl.fromTo("#c-stamp", { opacity: 0, scale: 2.4, rotation: -24 },
-        { opacity: 1, scale: 1, rotation: -12, duration: 0.18, ease: "power4.out" }, 5.84);
+      tl.fromTo("#c-stamp", { opacity: 0, scale: 1.18, rotation: -15 },
+        { opacity: 1, scale: 1, rotation: -12, duration: 0.36, ease: "power2.out" }, 5.84);
       slap("#c-sB", 6.38, 6);
       slap("#c-sC", 7.22, -10);
       slap("#c-sD", 8.26, 8);
-      slap("#c-sE", 9.15, -3, 1.9);
-      tl.fromTo("#c-stage", { x: 0 }, { keyframes: { x: [0, -10, 9, -6, 3, 0] }, duration: 0.3, ease: "none" }, 9.2);
-      // The pile jolts with every slap.
+      slap("#c-sE", 9.15, -3, 1.22);
+      tl.fromTo("#c-stage", { x: 0 }, { keyframes: { x: [0, -2, 2, -1, 0] }, duration: 0.32, ease: "sine.inOut" }, 9.2);
+      // A small breathing response replaces the aggressive camera jolts.
       [5.6, 6.4, 7.24, 8.28, 9.17].forEach((t) =>
-        tl.to("#c-stage", { keyframes: { scale: [1, 1.015, 1] }, duration: 0.25, ease: "none", transformOrigin: "50% 55%" }, t));
+        tl.to("#c-stage", { keyframes: { scale: [1, 1.004, 1] }, duration: 0.32, ease: "sine.inOut", transformOrigin: "50% 55%" }, t));
 
       // "Знакомься…": the pile trembles, then Didi bursts out of it.
       tl.to(["#c-sE", "#c-sC", "#c-s9", "#c-s10"], { keyframes: [
