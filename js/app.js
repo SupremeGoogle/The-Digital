@@ -3,18 +3,47 @@ import { parseQuick, dueInfo } from './parse.js';
 import { initBoard, renderBoard } from './board.js';
 import { initDrawer, open as openDrawer, close as closeDrawer } from './drawer.js';
 import { initDashboard, renderDashboard, plural } from './dashboard.js';
+import { initIntro } from './intro.js';
+import { initAssistant } from './assistant.js';
+import { initTaskEffects } from './task-effects.js';
+import { initCalendar } from './calendar.js';
+import { initReminders } from './reminders.js';
+
+const introReady = initIntro();
 
 const $ = (s) => document.querySelector(s);
-const THEME_KEY = 'taskflow.theme';
+const THEME_KEY = 'taskflow.sky.theme';
 const filters = { query: '', tag: 'all' };
 let scene = null;
+let sceneLoading = false;
+const compactScreen = matchMedia('(max-width: 700px)');
 let undo = null;
+
+// Однократное наполнение новой витрины. Существующие задачи не заменяются.
+try {
+  if (!localStorage.getItem('digitaltodo.examples.v1')) {
+    store.addDemoTasks();
+    localStorage.setItem('digitaltodo.examples.v1', '1');
+  }
+} catch { /* Недоступное хранилище не мешает работе. */ }
+
+const calendar = initCalendar({
+  onOpen: openDrawer,
+  onAddDate(iso) {
+    $('#dueInput').value = iso;
+    $('.composer-advanced').open = true;
+    $('#composer').scrollIntoView({ block: 'center', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' });
+    $('#taskInput').focus({ preventScroll: true });
+    announce(`Новая задача на ${new Date(iso + 'T12:00:00').toLocaleDateString('ru')}`);
+  },
+});
 
 // ---------- отрисовка ----------
 
 function render(change) {
   renderBoard({ ...filters, animate: change?.type === 'move' || change?.type === 'update' });
   renderDashboard();
+  if (!change) calendar.render(filters);
 }
 
 store.subscribe(render);
@@ -114,11 +143,13 @@ $('#tagFilter').addEventListener('click', (e) => {
   if (!pill) return;
   setTag(pill.dataset.tag);
   renderBoard(filters);
+  calendar.render(filters);
 });
 
 $('#search').addEventListener('input', (e) => {
   filters.query = e.target.value;
   renderBoard(filters);
+  calendar.render(filters);
 });
 
 $('#clearDone').addEventListener('click', () => {
@@ -126,12 +157,37 @@ $('#clearDone').addEventListener('click', () => {
   if (ids.length) deleteTasks(ids, `Удалено ${ids.length} ${plural(ids.length, 'готовая задача', 'готовые задачи', 'готовых задач')}`);
 });
 
+$('#demoBtn').addEventListener('click', () => {
+  const count = store.addDemoTasks();
+  announce(count ? `Добавлено примеров: ${count}` : 'Примерные задачи уже добавлены');
+  $('#demoBtn').textContent = count ? `Добавлено: ${count}` : 'Примеры уже в списке';
+});
+
+function setLayout(layout) {
+  if (!['board', 'list', 'calendar'].includes(layout)) layout = 'board';
+  $('#board').classList.toggle('is-list', layout === 'list');
+  $('#board').hidden = layout === 'calendar';
+  calendar.render(filters);
+  calendar.setVisible(layout === 'calendar');
+  $('.work-area .hint').hidden = layout === 'calendar';
+  document.querySelectorAll('[data-layout]').forEach((button) => {
+    const active = button.dataset.layout === layout;
+    button.classList.toggle('is-active', active);
+    button.setAttribute('aria-pressed', String(active));
+  });
+}
+document.querySelectorAll('[data-layout]').forEach((button) => button.addEventListener('click', () => {
+  setLayout(button.dataset.layout);
+  try { localStorage.setItem('digitaltodo.layout', button.dataset.layout); } catch {}
+}));
+try { setLayout(localStorage.getItem('digitaltodo.layout') || 'board'); } catch {}
+
 // ---------- тема ----------
 
 $('#themeBtn').addEventListener('click', () => {
   const next = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light';
   document.documentElement.dataset.theme = next;
-  document.querySelector('meta[name="theme-color"]').content = next === 'light' ? '#f4f4f8' : '#05050a';
+  document.querySelector('meta[name="theme-color"]').content = next === 'light' ? '#eaf4ff' : '#182940';
   try {
     localStorage.setItem(THEME_KEY, next);
   } catch {}
@@ -155,40 +211,63 @@ document.addEventListener('keydown', (e) => {
   } else if (e.key === 'Escape' && e.target.id === 'search') {
     e.target.value = filters.query = '';
     renderBoard(filters);
+    calendar.render(filters);
   }
 });
 
 // ---------- 3D-сцена ----------
 
 const sceneEl = $('#scene');
-
-document.querySelectorAll('[data-view]').forEach((b) =>
-  b.addEventListener('click', () => {
-    scene?.setView(b.dataset.view);
-    document.querySelectorAll('[data-view]').forEach((x) => x.classList.toggle('is-active', x === b));
-  }),
-);
-$('#rotateBtn').addEventListener('click', (e) => {
-  const btn = e.currentTarget;
-  const on = btn.getAttribute('aria-pressed') !== 'true';
-  btn.setAttribute('aria-pressed', on);
-  scene?.setAutoRotate(on);
+const expandScene = $('#expandScene');
+function setSceneExpanded(expanded) {
+  sceneEl.classList.toggle('is-expanded', expanded);
+  document.body.classList.toggle('scene-expanded', expanded);
+  expandScene.setAttribute('aria-expanded', expanded);
+  expandScene.setAttribute('aria-label', expanded ? 'Свернуть 3D-обзор' : 'Развернуть 3D-обзор');
+  if (expanded) {
+    sceneEl.setAttribute('aria-modal', 'true');
+    sceneEl.setAttribute('role', 'dialog');
+    sceneEl.setAttribute('aria-label', '3D-обзор задач');
+  } else {
+    sceneEl.removeAttribute('aria-modal');
+    sceneEl.removeAttribute('role');
+    sceneEl.removeAttribute('aria-label');
+  }
+  document.querySelectorAll('.topbar, .work-area, .work-aside > :not(.scene), .footer, #digitalPal').forEach((el) => { el.inert = expanded; });
+  expandScene.focus({ preventScroll: true });
+}
+expandScene.addEventListener('click', () => setSceneExpanded(!sceneEl.classList.contains('is-expanded')));
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && sceneEl.classList.contains('is-expanded')) setSceneExpanded(false);
+  if (e.key === 'Tab' && sceneEl.classList.contains('is-expanded')) {
+    const buttons = [...sceneEl.querySelectorAll('button:not([disabled])')];
+    const first = buttons[0], last = buttons.at(-1);
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  }
 });
-$('#replayBtn').addEventListener('click', () => scene?.replay());
 
 async function loadScene() {
+  if (scene || sceneLoading || compactScreen.matches) return;
+  sceneLoading = true;
   try {
+    await introReady;
     await document.fonts.ready;
     const { createScene } = await import('./scene3d.js');
     scene = createScene(sceneEl, { onOpen: openDrawer });
     sceneEl.classList.add('is-ready');
-    if (matchMedia('(prefers-reduced-motion: reduce)').matches) $('#rotateBtn').setAttribute('aria-pressed', 'false');
   } catch (err) {
     console.warn('3D не загрузился:', err);
     sceneEl.querySelector('.scene-fallback').hidden = false;
     sceneEl.classList.add('is-failed');
+  } finally {
+    sceneLoading = false;
   }
 }
+compactScreen.addEventListener('change', () => {
+  if (compactScreen.matches && sceneEl.classList.contains('is-expanded')) setSceneExpanded(false);
+  if (!compactScreen.matches) loadScene();
+});
 
 // ---------- запуск ----------
 
@@ -204,6 +283,9 @@ initBoard({
 initDrawer({ onDelete: (id) => deleteTasks([id]) });
 initDashboard({ onOpen: openDrawer });
 render();
+initAssistant();
+initTaskEffects();
+initReminders();
 loadScene();
 
 // Относительные сроки («сегодня», «завтра») пересчитываем раз в минуту

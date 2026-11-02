@@ -1,0 +1,12 @@
+{
+  "name": "digital-todo-assistant",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "engines": { "node": ">=20.12" },
+  "scripts": {
+    "start": "node --env-file=.env index.mjs",
+    "start:demo": "node index.mjs",
+    "test": "node --test assistant.test.mjs local-assistant.test.mjs assistant-stream.test.mjs calendar.test.mjs telegram.test.mjs"
+  }
+}

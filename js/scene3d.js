@@ -1,4 +1,4 @@
-// 3D-вид: каждая колонка — стеклянный этаж, задачи парят над ним кубами со светящимся ядром.
+// Небольшая живая витрина: матовые задачи на мягких цветных платформах.
 // Кубы можно перетаскивать между этажами, клик открывает карточку задачи.
 
 import * as THREE from 'three';
@@ -7,17 +7,16 @@ import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.j
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
-import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 import * as store from './store.js';
 
 const LANES = [
-  { status: 'todo', x: -3.4, color: '#2ee6ff', label: 'К ВЫПОЛНЕНИЮ' },
-  { status: 'doing', x: 0, color: '#ff8a3d', label: 'В РАБОТЕ' },
-  { status: 'done', x: 3.4, color: '#c8ff3d', label: 'ГОТОВО' },
+  { status: 'todo', x: -3.4, color: '#79adf0', label: 'Планы' },
+  { status: 'doing', x: 0, color: '#f2cf74', label: 'В работе' },
+  { status: 'done', x: 3.4, color: '#80ccb2', label: 'Готово' },
 ];
-const TAG_COLORS = { work: '#2ee6ff', home: '#9b6bff', study: '#ff8a3d', urgent: '#ff4fa3' };
-const DONE_COLOR = '#c8ff3d';
+const TAG_COLORS = { work: '#6c9fe7', home: '#82c9b3', study: '#edbf69', urgent: '#e49ca9' };
+const DONE_COLOR = '#80ccb2';
 const HEIGHT = { low: 0.75, med: 1.05, high: 1.4 };
 const FLOOR_W = 2.9;
 const FLOOR_D = 4.8;
@@ -32,26 +31,37 @@ const CAMERAS = {
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 // Сияющий цвет: значения выше 1 проходят порог bloom
-const glow = (hex, k = 2.2) => new THREE.Color(hex).multiplyScalar(k);
+const glow = (hex) => new THREE.Color(hex);
 
 export function createScene(host, { onOpen, onHover }) {
   const canvasWrap = host.querySelector('.scene-canvas');
   const tooltip = host.querySelector('.scene-tip');
+  const labelsLayer = document.createElement('div');
+  labelsLayer.className = 'scene-labels';
+  labelsLayer.setAttribute('aria-hidden', 'true');
+  labelsLayer.style.pointerEvents = 'none';
+  canvasWrap.appendChild(labelsLayer);
+  let labelsNeedMeasure = true;
+  let labelsExpanded = host.classList.contains('is-expanded');
+  let viewportWidth = 1;
+  let viewportHeight = 1;
 
   // ---------- рендер ----------
   const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
   renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.05;
+  renderer.toneMappingExposure = 0.95;
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   canvasWrap.appendChild(renderer.domElement);
 
   const scene = new THREE.Scene();
-  scene.background = new THREE.Color('#06060c');
-  scene.fog = new THREE.Fog('#06060c', 16, 30);
+  scene.background = new THREE.Color('#e7f3ff');
+  scene.fog = new THREE.Fog('#e7f3ff', 18, 38);
 
   const pmrem = new THREE.PMREMGenerator(renderer);
   scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
-  scene.environmentIntensity = 0.55;
+  scene.environmentIntensity = 0.35;
 
   const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 100);
   camera.position.set(...CAMERAS.overview.pos);
@@ -74,18 +84,22 @@ export function createScene(host, { onOpen, onHover }) {
 
   const composer = new EffectComposer(renderer);
   composer.addPass(new RenderPass(scene, camera));
-  const bloom = new UnrealBloomPass(new THREE.Vector2(1, 1), 0.85, 0.55, 0.9);
-  composer.addPass(bloom);
   composer.addPass(new OutputPass());
 
   // ---------- свет ----------
-  scene.add(new THREE.HemisphereLight('#7a6cff', '#05050a', 0.6));
-  const key = new THREE.DirectionalLight('#ffffff', 1.4);
-  key.position.set(4, 9, 6);
+  scene.add(new THREE.HemisphereLight('#ffffff', '#adbed6', 1.25));
+  const key = new THREE.DirectionalLight('#fff9ee', 2);
+  key.position.set(-4, 9, 6);
+  key.castShadow = true;
+  key.shadow.mapSize.set(1024, 1024);
+  Object.assign(key.shadow.camera, { left: -9, right: 9, top: 8, bottom: -8, near: 0.1, far: 30 });
+  key.shadow.normalBias = 0.04;
+  key.shadow.bias = -0.0002;
+  key.shadow.radius = 4;
   scene.add(key);
-  const rimA = new THREE.PointLight('#2ee6ff', 7, 12);
+  const rimA = new THREE.PointLight('#b9d9ff', 2, 12);
   rimA.position.set(-7, 4, -5);
-  const rimB = new THREE.PointLight('#ff4fa3', 7, 12);
+  const rimB = new THREE.PointLight('#ffe7ac', 2, 12);
   rimB.position.set(7, 4, -5);
   scene.add(rimA, rimB);
 
@@ -121,40 +135,51 @@ export function createScene(host, { onOpen, onHover }) {
     halo: new THREE.TorusGeometry(0.5, 0.012, 8, 64),
   };
   const glassMat = new THREE.MeshPhysicalMaterial({
-    color: '#1a1a33',
-    metalness: 0.05,
-    roughness: 0.12,
-    transmission: 0.75,
-    thickness: 0.6,
-    ior: 1.45,
-    clearcoat: 1,
-    clearcoatRoughness: 0.08,
-    iridescence: 0.6,
-    iridescenceIOR: 1.3,
-    transparent: true,
+    color: '#8ab8ee', metalness: 0, roughness: 0.72,
+    clearcoat: 0.12, clearcoatRoughness: 0.7,
   });
 
   function makeNode(task) {
     const group = new THREE.Group();
     group.userData.id = task.id;
+    const label = document.createElement('span');
+    label.className = 'scene-node-label';
+    label.dataset.id = task.id;
+    label.hidden = true;
+    labelsLayer.appendChild(label);
+    labelsNeedMeasure = true;
 
     const cube = new THREE.Mesh(geo.cube, glassMat.clone());
     cube.userData.id = task.id;
+    cube.castShadow = true;
+    cube.receiveShadow = true;
     group.add(cube);
+
+    // Рельефная пиктограмма вращается вместе с самой задачей.
+    const face = new THREE.Group();
+    const ink = new THREE.MeshStandardMaterial({ color: '#f8fcff', roughness: 0.8 });
+    for (let i = 0; i < 3; i++) {
+      const line = new THREE.Mesh(new RoundedBoxGeometry(0.3 - i * 0.04, 0.045, 0.035, 3, 0.015), ink);
+      line.position.set(0, 0.1 - i * 0.1, 0.305);
+      face.add(line);
+    }
+    cube.add(face);
 
     const coreMat = new THREE.MeshBasicMaterial({ toneMapped: false });
     const core = new THREE.Mesh(geo.core, coreMat);
     group.add(core);
+    core.visible = false;
 
     const shellMat = new THREE.MeshBasicMaterial({ wireframe: true, transparent: true, opacity: 0.35, toneMapped: false });
     const shell = new THREE.Mesh(geo.shell, shellMat);
     group.add(shell);
+    shell.visible = false;
 
     // Приоритет: число спутников вокруг куба
     const sats = new THREE.Group();
     group.add(sats);
 
-    const halo = new THREE.Mesh(geo.halo, new THREE.MeshBasicMaterial({ color: glow('#ff4fa3', 1.8), toneMapped: false, transparent: true }));
+    const halo = new THREE.Mesh(geo.halo, new THREE.MeshStandardMaterial({ color: '#efc454', roughness: 0.6 }));
     halo.rotation.x = Math.PI / 2;
     group.add(halo);
 
@@ -168,7 +193,8 @@ export function createScene(host, { onOpen, onHover }) {
     scene.add(spot);
 
     const node = {
-      id: task.id, group, cube, core, shell, sats, halo, beam, spot,
+      id: task.id, group, cube, core, shell, sats, halo, beam, spot, face, label,
+      labelWidth: 76, labelHeight: 18,
       target: new THREE.Vector3(), phase: Math.random() * Math.PI * 2,
       scale: 0, hover: 0, dragging: false, removing: false, priority: null, color: null,
     };
@@ -177,6 +203,12 @@ export function createScene(host, { onOpen, onHover }) {
   }
 
   function styleNode(node, task) {
+    if (node.label.textContent !== task.text) {
+      node.label.textContent = task.text;
+      node.label.title = task.text;
+      labelsNeedMeasure = true;
+    }
+    node.label.dataset.status = task.status;
     const color = task.status === 'done' ? DONE_COLOR : TAG_COLORS[task.tag];
     if (node.color !== color) {
       node.color = color;
@@ -184,7 +216,7 @@ export function createScene(host, { onOpen, onHover }) {
       node.shell.material.color.copy(glow(color, 1.6));
       node.beam.material.color.copy(glow(color, 1.4));
       node.spot.material.color.copy(glow(color, 1.6));
-      node.cube.material.color.set(color).lerp(new THREE.Color('#14142a'), 0.82);
+      node.cube.material.color.set(color);
       node.cube.material.attenuationColor = new THREE.Color(color);
     }
     if (node.priority !== task.priority) {
@@ -192,7 +224,7 @@ export function createScene(host, { onOpen, onHover }) {
       node.sats.clear();
       const count = { low: 1, med: 2, high: 3 }[task.priority];
       for (let i = 0; i < count; i++) {
-        const dot = new THREE.Mesh(geo.dot, new THREE.MeshBasicMaterial({ color: glow('#ffffff', 1.6), toneMapped: false }));
+        const dot = new THREE.Mesh(geo.dot, new THREE.MeshStandardMaterial({ color: '#f1c864', roughness: 0.6 }));
         dot.userData.angle = (i / count) * Math.PI * 2;
         node.sats.add(dot);
       }
@@ -218,6 +250,7 @@ export function createScene(host, { onOpen, onHover }) {
           node.group.position.set(lane.x, -0.6, 0);
         }
         styleNode(node, task);
+        node.removing = false;
         const col = i % 2;
         const row = Math.floor(i / 2) % 4;
         const layer = Math.floor(i / 8);
@@ -235,15 +268,21 @@ export function createScene(host, { onOpen, onHover }) {
       });
     });
     nodes.forEach((node, id) => {
-      if (!seen.has(id) && !node.removing) node.removing = true;
+      if (!seen.has(id) && !node.removing) {
+        node.removing = true;
+        node.label.hidden = true;
+      }
     });
     firstLayout = false;
   }
 
   function disposeNode(node) {
+    node.label.remove();
     nodeGroup.remove(node.group);
     scene.remove(node.beam, node.spot);
     node.cube.material.dispose();
+    node.face.children.forEach((line) => line.geometry.dispose());
+    node.face.children[0].material.dispose();
     node.core.material.dispose();
     node.shell.material.dispose();
     node.beam.material.dispose();
@@ -462,6 +501,11 @@ export function createScene(host, { onOpen, onHover }) {
   function setView(name) {
     const v = CAMERAS[name];
     if (!v) return;
+    if (reduceMotion) {
+      camera.position.set(...v.pos);
+      controls.target.set(...v.target);
+      return;
+    }
     camAnim = {
       fromPos: camera.position.clone(),
       fromTarget: controls.target.clone(),
@@ -490,12 +534,90 @@ export function createScene(host, { onOpen, onHover }) {
   let running = true;
   let visible = true;
 
+  // DOM-подписи остаются чёткими при любом DPR и размере WebGL-буфера.
+  // В цикле меняются только координаты; текст и размеры обновляются при изменениях.
+  const labelPoint = new THREE.Vector3();
+  function updateLabels() {
+    const expanded = host.classList.contains('is-expanded');
+    if (expanded !== labelsExpanded) {
+      labelsExpanded = expanded;
+      labelsNeedMeasure = true;
+    }
+    const entries = [];
+    nodes.forEach((node) => {
+      labelPoint.copy(node.group.position);
+      labelPoint.y += 0.48 * node.scale;
+      labelPoint.project(camera);
+      const hidden = node.removing || node.scale < 0.1 ||
+        labelPoint.z < -1 || labelPoint.z > 1 ||
+        Math.abs(labelPoint.x) > 1 || Math.abs(labelPoint.y) > 1;
+      node.label.hidden = hidden;
+      if (!hidden) entries.push({
+        node,
+        x: (labelPoint.x * 0.5 + 0.5) * viewportWidth,
+        y: (-labelPoint.y * 0.5 + 0.5) * viewportHeight - 3,
+        depth: labelPoint.z,
+      });
+    });
+
+    // Read all dimensions together, before writing positions; no frame-by-frame reflow.
+    if (labelsNeedMeasure) {
+      entries.forEach(({ node }) => {
+        node.labelWidth = node.label.offsetWidth || (expanded ? 150 : 76);
+        node.labelHeight = node.label.offsetHeight || (expanded ? 34 : 18);
+      });
+      labelsNeedMeasure = false;
+    }
+
+    // A stable top-to-bottom pass shifts only colliding labels vertically.
+    // Every visible cube keeps its own label, including crowded compact scenes.
+    entries.sort((a, b) => a.y - b.y || a.x - b.x || a.node.id.localeCompare(b.node.id));
+    const placed = [];
+    const padding = 6;
+    entries.forEach(({ node, x, y, depth }) => {
+      const width = Math.min(node.labelWidth, viewportWidth - padding * 2);
+      const height = node.labelHeight;
+      const cx = THREE.MathUtils.clamp(x, padding + width / 2, viewportWidth - padding - width / 2);
+      const minY = padding + height;
+      const maxY = Math.max(minY, viewportHeight - padding);
+      const idealY = THREE.MathUtils.clamp(y, minY, maxY);
+      const step = height + 3;
+      let bestY = idealY;
+      let bestScore = Infinity;
+      const attempts = Math.ceil(viewportHeight / step);
+      for (let offset = 0; offset <= attempts; offset++) {
+        const directions = offset ? [-1, 1] : [0];
+        for (const direction of directions) {
+          const candidateY = idealY + direction * offset * step;
+          if (candidateY < minY || candidateY > maxY) continue;
+          const left = cx - width / 2;
+          const right = cx + width / 2;
+          const top = candidateY - height;
+          let overlap = 0;
+          placed.forEach((other) => {
+            const dx = Math.min(right + 2, other.right) - Math.max(left - 2, other.left);
+            const dy = Math.min(candidateY + 2, other.bottom) - Math.max(top - 2, other.top);
+            if (dx > 0 && dy > 0) overlap += dx * dy;
+          });
+          const score = overlap * 1000 + Math.abs(candidateY - idealY);
+          if (score < bestScore) { bestScore = score; bestY = candidateY; }
+          if (!overlap) break;
+        }
+        if (bestScore <= offset * step) break;
+      }
+      placed.push({ left: cx - width / 2, right: cx + width / 2, top: bestY - height, bottom: bestY });
+      node.label.style.left = `${cx.toFixed(1)}px`;
+      node.label.style.top = `${bestY.toFixed(1)}px`;
+      node.label.style.zIndex = String(Math.round((1 - depth) * 1000));
+    });
+  }
+
   function frame() {
     if (!running) return;
     requestAnimationFrame(frame);
     if (!visible || document.hidden) return;
     const dt = Math.min(clock.getDelta(), 0.1);
-    const t = clock.elapsedTime;
+    const t = reduceMotion ? 0 : clock.elapsedTime;
 
     if (camAnim) {
       camAnim.t = Math.min(camAnim.t + dt / 0.9, 1);
@@ -536,10 +658,10 @@ export function createScene(host, { onOpen, onHover }) {
       const h = Math.max(p.y - 0.1, 0.01);
       n.beam.position.set(p.x, 0.1 + h / 2, p.z);
       n.beam.scale.set(1, h, 1);
-      n.beam.material.opacity = 0.35 * n.scale;
+      n.beam.material.opacity = 0.12 * n.scale;
       n.spot.position.set(p.x, 0.115, p.z);
       n.spot.scale.setScalar((1 + Math.sin(t * 2.4 + n.phase) * 0.12) * n.scale);
-      n.spot.material.opacity = 0.65 * n.scale;
+      n.spot.material.opacity = 0.2 * n.scale;
 
       if (n.removing && n.scale < 0.02) disposeNode(n);
     });
@@ -549,7 +671,7 @@ export function createScene(host, { onOpen, onHover }) {
       l.edge.material.color.copy(glow(LANES[i].color, 1.15 + l.glowLevel * 1.6 + Math.sin(t * 1.5 + i) * 0.12));
       l.top.material.opacity = 0.9 + l.glowLevel * 0.1;
       l.scan.position.z = ((t * 0.5 + i * 0.33) % 1) * FLOOR_D - FLOOR_D / 2;
-      l.scan.material.opacity = 0.35 + l.glowLevel * 0.5;
+      l.scan.material.opacity = 0.12 + l.glowLevel * 0.25;
     });
     laneFlows.forEach((f, i) => f.update(t, i));
     updateWires(t);
@@ -557,15 +679,18 @@ export function createScene(host, { onOpen, onHover }) {
     dust.rotation.y = t * 0.02;
 
     composer.render();
+    updateLabels();
   }
 
   // ---------- размеры и видимость ----------
   function resize() {
     const { width, height } = canvasWrap.getBoundingClientRect();
     if (!width || !height) return;
+    viewportWidth = width;
+    viewportHeight = height;
+    labelsNeedMeasure = true;
     renderer.setSize(width, height, false);
     composer.setSize(width, height);
-    bloom.resolution.set(width, height);
     camera.aspect = width / height;
     // Горизонтальный угол обзора держим постоянным, чтобы на узком экране влезали все три этажа
     const aspect = width / height;
@@ -588,7 +713,7 @@ export function createScene(host, { onOpen, onHover }) {
   frame();
 
   function makeDust() {
-    const count = 900;
+    const count = 90;
     const pos = new Float32Array(count * 3);
     const col = new Float32Array(count * 3);
     const palette = ['#2ee6ff', '#9b6bff', '#ff4fa3', '#ff8a3d', '#ffffff'].map((c) => new THREE.Color(c));
@@ -604,7 +729,7 @@ export function createScene(host, { onOpen, onHover }) {
     g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
     g.setAttribute('color', new THREE.BufferAttribute(col, 3));
     dust = new THREE.Points(g, new THREE.PointsMaterial({
-      size: 0.09, map: dotTexture(), vertexColors: true, transparent: true, opacity: 0.8, depthWrite: false, blending: THREE.AdditiveBlending,
+      size: 0.04, map: dotTexture(), vertexColors: true, transparent: true, opacity: 0.12, depthWrite: false,
     }));
     return dust;
   }
@@ -617,26 +742,23 @@ export function createScene(host, { onOpen, onHover }) {
 function makeGround() {
   const group = new THREE.Group();
   const size = 40;
-  const tex = new THREE.CanvasTexture(gridCanvas());
-  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
-  tex.repeat.set(size / 2, size / 2);
-  tex.anisotropy = 8;
   const plane = new THREE.Mesh(
     new THREE.PlaneGeometry(size, size),
-    new THREE.MeshBasicMaterial({ map: tex, transparent: true, opacity: 0.55, depthWrite: false }),
+    new THREE.MeshStandardMaterial({ color: '#e7f3ff', roughness: 1 }),
   );
   plane.rotation.x = -Math.PI / 2;
-  plane.position.y = -0.02;
+  plane.position.y = -0.15;
+  plane.receiveShadow = true;
   group.add(plane);
 
   // Мягкое пятно света под этажами
   const glowTex = new THREE.CanvasTexture(radialCanvas());
   const pool = new THREE.Mesh(
     new THREE.PlaneGeometry(16, 10),
-    new THREE.MeshBasicMaterial({ map: glowTex, transparent: true, opacity: 0.5, blending: THREE.AdditiveBlending, depthWrite: false }),
+    new THREE.MeshBasicMaterial({ map: glowTex, transparent: true, opacity: 0.09, depthWrite: false }),
   );
   pool.rotation.x = -Math.PI / 2;
-  pool.position.y = -0.01;
+  pool.position.y = -0.14;
   group.add(pool);
   return group;
 }
@@ -646,10 +768,12 @@ function makeLane(lane) {
   group.position.x = lane.x;
 
   const slab = new THREE.Mesh(
-    new RoundedBoxGeometry(FLOOR_W, 0.16, FLOOR_D, 4, 0.06),
-    new THREE.MeshPhysicalMaterial({ color: '#0e0e1c', metalness: 0.2, roughness: 0.6, clearcoat: 0.35, clearcoatRoughness: 0.5 }),
+    new RoundedBoxGeometry(FLOOR_W, 0.26, FLOOR_D, 6, 0.12),
+    new THREE.MeshPhysicalMaterial({ color: lane.color, metalness: 0, roughness: 0.78, clearcoat: 0.08 }),
   );
-  slab.position.y = 0.02;
+  slab.position.y = 0;
+  slab.castShadow = true;
+  slab.receiveShadow = true;
   group.add(slab);
 
   // Верх этажа: точечная сетка и подпись
@@ -660,25 +784,25 @@ function makeLane(lane) {
   top.material.map.colorSpace = THREE.SRGBColorSpace;
   top.material.map.anisotropy = 8;
   top.rotation.x = -Math.PI / 2;
-  top.position.y = 0.105;
+  top.position.y = 0.135;
   group.add(top);
 
   // Светящийся контур
   const shape = roundedRect(FLOOR_W / 2, FLOOR_D / 2, 0.16);
   const hole = roundedRect(FLOOR_W / 2 - 0.035, FLOOR_D / 2 - 0.035, 0.13);
   shape.holes.push(hole);
-  const edge = new THREE.Mesh(new THREE.ShapeGeometry(shape, 12), new THREE.MeshBasicMaterial({ toneMapped: false }));
+  const edge = new THREE.Mesh(new THREE.ShapeGeometry(shape, 12), new THREE.MeshBasicMaterial({ transparent: true, opacity: 0.22 }));
   edge.rotation.x = -Math.PI / 2;
-  edge.position.y = 0.11;
+  edge.position.y = 0.14;
   group.add(edge);
 
   // Бегущая линия сканера
   const scan = new THREE.Mesh(
     new THREE.PlaneGeometry(FLOOR_W - 0.2, 0.05),
-    new THREE.MeshBasicMaterial({ color: glow(lane.color, 1.5), transparent: true, opacity: 0.4, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false }),
+    new THREE.MeshBasicMaterial({ color: '#ffffff', transparent: true, opacity: 0.2, depthWrite: false }),
   );
   scan.rotation.x = -Math.PI / 2;
-  scan.position.y = 0.112;
+  scan.position.y = 0.145;
   group.add(scan);
 
   return { group, edge, top, scan, highlight: 0, glowLevel: 0, x: lane.x, color: lane.color };
@@ -696,7 +820,7 @@ function makeFlow(a, b) {
   curves.forEach((curve) => {
     const tube = new THREE.Mesh(
       new THREE.TubeGeometry(curve, 32, 0.012, 6),
-      new THREE.MeshBasicMaterial({ color: '#3a3a5c', transparent: true, opacity: 0.8 }),
+      new THREE.MeshBasicMaterial({ color: '#98b3cf', transparent: true, opacity: 0.4 }),
     );
     group.add(tube);
     for (let k = 0; k < 2; k++) {
@@ -742,17 +866,17 @@ function laneTopCanvas(lane) {
   c.height = Math.round((FLOOR_D - 0.08) * scale);
   const g = c.getContext('2d');
   const grad = g.createLinearGradient(0, 0, 0, c.height);
-  grad.addColorStop(0, 'rgba(20,20,40,0.0)');
-  grad.addColorStop(1, hexA(lane.color, 0.1));
+  grad.addColorStop(0, 'rgba(255,255,255,0.25)');
+  grad.addColorStop(1, 'rgba(255,255,255,0.04)');
   g.fillStyle = grad;
   g.fillRect(0, 0, c.width, c.height);
-  g.fillStyle = 'rgba(255,255,255,0.13)';
+  g.fillStyle = 'rgba(32,68,110,0.1)';
   for (let x = 30; x < c.width; x += 44) for (let y = 30; y < c.height - 120; y += 44) g.fillRect(x, y, 3, 3);
-  g.font = '700 54px Unbounded, Manrope, sans-serif';
+  g.font = '900 58px Nunito, Manrope, sans-serif';
   g.textAlign = 'center';
-  g.fillStyle = lane.color;
-  g.shadowColor = lane.color;
-  g.shadowBlur = 24;
+  g.fillStyle = '#25496e';
+  g.shadowColor = 'rgba(255,255,255,0.6)';
+  g.shadowBlur = 2;
   g.fillText(lane.label, c.width / 2, c.height - 50);
   return c;
 }
@@ -767,13 +891,32 @@ function gridCanvas() {
   return c;
 }
 
+// Мягкий фон витрины, без декоративных объектов поверх рабочих платформ.
+function makeSkyDetails() {
+  const group = new THREE.Group();
+  const white = new THREE.MeshStandardMaterial({ color: '#f7fbff', roughness: 1 });
+  [[-5.8, -3.3], [5.9, -3.8]].forEach(([x, z]) => {
+    [0, 1, 2].forEach((i) => {
+      const puff = new THREE.Mesh(new THREE.SphereGeometry(0.52 + (i % 2) * 0.25, 24, 16), white);
+      puff.position.set(x + (i - 1) * 0.6, 0.08 + (i % 2) * 0.15, z);
+      puff.scale.set(1.1, 0.85, 0.85);
+      puff.castShadow = true;
+      group.add(puff);
+    });
+  });
+  const sun = new THREE.Mesh(new THREE.SphereGeometry(0.65, 32, 20), new THREE.MeshStandardMaterial({ color: '#f4d47e', roughness: 0.75 }));
+  sun.position.set(-5.7, 0.65, -4.2);
+  group.add(sun);
+  return group;
+}
+
 function radialCanvas() {
   const c = document.createElement('canvas');
   c.width = c.height = 256;
   const g = c.getContext('2d');
   const grad = g.createRadialGradient(128, 128, 0, 128, 128, 128);
-  grad.addColorStop(0, 'rgba(155,107,255,0.55)');
-  grad.addColorStop(0.5, 'rgba(46,230,255,0.12)');
+  grad.addColorStop(0, 'rgba(160,191,227,0.35)');
+  grad.addColorStop(0.5, 'rgba(194,217,241,0.12)');
   grad.addColorStop(1, 'rgba(0,0,0,0)');
   g.fillStyle = grad;
   g.fillRect(0, 0, 256, 256);

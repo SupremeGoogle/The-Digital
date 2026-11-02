@@ -142,25 +142,89 @@ window.addEventListener('storage', (e) => {
   }
 });
 
-// Пример задач при самом первом открытии, чтобы дашборд не был пустым
+// Примеры имеют постоянные ID: повторное добавление не дублирует задачи.
+// Даты считаются по местному календарю, без сдвига дня при переводе в UTC.
+export function addDemoTasks() {
+  const ids = new Set(tasks.map((task) => task.id));
+  const titles = new Set(tasks.map((task) => task.text.trim().toLocaleLowerCase('ru')));
+  const added = demo().filter((task) => !ids.has(task.id) && !titles.has(task.text.trim().toLocaleLowerCase('ru')));
+  if (!added.length) return 0;
+  tasks.push(...added);
+  emit({ type: 'add', ids: added.map((task) => task.id) });
+  return added.length;
+}
+
+// Насыщенный, явно демонстрационный набор для самого первого открытия.
+// Существующий localStorage и задачи пользователя не заменяются.
 export function demo() {
-  const day = 864e5;
   const now = Date.now();
-  const iso = (offset) => new Date(now + offset * day).toISOString().slice(0, 10);
-  const sub = (text, done = false) => ({ id: uid(), text, done });
+  const day = 864e5;
+  const localDay = (offset) => {
+    const date = new Date(now);
+    date.setDate(date.getDate() + offset);
+    date.setHours(0, 0, 0, 0);
+    return date;
+  };
+  const iso = (offset) => {
+    const date = localDay(offset);
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+  };
+  const completed = (daysAgo, hour = 11) => {
+    if (daysAgo === 0) return now - Math.min(2 * 36e5, (now - localDay(0).getTime()) / 2);
+    const date = localDay(-daysAgo);
+    date.setHours(hour, 15, 0, 0);
+    return date.getTime();
+  };
+  const sub = (text, done = false) => ({ text, done });
   return [
-    { text: 'Отправить тестовое задание в The Digital', tag: 'urgent', priority: 'high', status: 'doing', due: iso(0),
-      subtasks: [sub('Залить код на GitHub', true), sub('Включить GitHub Pages', true), sub('Написать сопроводительное')] },
-    { text: 'Собрать 3D-дашборд на Three.js', tag: 'work', priority: 'high', status: 'doing', due: iso(1),
-      notes: 'Этажи по статусам, задачи парят над ними, bloom-свечение.' },
-    { text: 'Прочитать главу про замыкания в JavaScript', tag: 'study', priority: 'med', status: 'todo', due: iso(3) },
-    { text: 'Записаться в зал на вечер', tag: 'home', priority: 'low', status: 'todo', due: null },
-    { text: 'Разобрать почту и ответить клиентам', tag: 'work', priority: 'med', status: 'todo', due: iso(-1) },
-    { text: 'Купить продукты на неделю', tag: 'home', priority: 'low', status: 'todo', due: iso(2) },
-    { text: 'Созвон с командой', tag: 'work', priority: 'med', status: 'done', doneAt: now - 2 * 36e5 },
-    { text: 'Сверстать карточки канбана', tag: 'work', priority: 'high', status: 'done', doneAt: now - 1 * day },
-    { text: 'Повторить алгоритмы сортировки', tag: 'study', priority: 'med', status: 'done', doneAt: now - 2 * day },
-    { text: 'Оплатить интернет', tag: 'home', priority: 'low', status: 'done', doneAt: now - 4 * day },
-    { text: 'Обновить резюме', tag: 'urgent', priority: 'high', status: 'done', doneAt: now - 5 * day },
-  ].map((t, i) => normalize({ ...t, id: uid(), createdAt: now - (i + 1) * 7 * 36e5 }));
+    { text: 'Подготовить презентацию проекта', tag: 'work', priority: 'high', status: 'todo', due: iso(1),
+      notes: 'Собрать короткую историю: задача, решение, результат. Оставить пять минут на вопросы.',
+      subtasks: [sub('Собрать ключевые тезисы', true), sub('Оформить шесть слайдов'), sub('Проверить ссылки')] },
+    { text: 'Обновить портфолио', tag: 'work', priority: 'med', status: 'todo', due: iso(3),
+      notes: 'Добавить новый кейс и несколько экранов. Выделить свою роль и полученный результат.' },
+    { text: 'Прочитать главу про замыкания', tag: 'study', priority: 'med', status: 'todo', due: iso(2),
+      subtasks: [sub('Прочитать объяснение'), sub('Разобрать три примера'), sub('Записать выводы')] },
+    { text: 'Запланировать тренировку', tag: 'home', priority: 'low', status: 'todo', due: iso(1),
+      notes: 'Выбрать удобное время и добавить напоминание в календарь.' },
+    { text: 'Разобрать входящие письма', tag: 'urgent', priority: 'high', status: 'todo', due: iso(-1),
+      notes: 'Пример просроченной задачи: проверить важные письма и перенести оставшиеся на подходящую дату.' },
+    { text: 'Составить список покупок', tag: 'home', priority: 'low', status: 'todo', due: iso(2),
+      subtasks: [sub('Проверить запасы', true), sub('Составить меню'), sub('Записать продукты')] },
+    { text: 'Проверить мобильную версию', tag: 'work', priority: 'high', status: 'doing', due: iso(0),
+      notes: 'Проверить формы, переносы текста и управление задачами на узком экране.',
+      subtasks: [sub('Проверить экран 390 px', true), sub('Проверить экран 768 px'), sub('Пройти сценарий добавления')] },
+    { text: 'Отправить тестовое задание', tag: 'urgent', priority: 'high', status: 'doing', due: iso(0),
+      notes: 'Подготовить ссылку на репозиторий, рабочий сайт и короткое описание использованных AI-инструментов.',
+      subtasks: [sub('Проверить репозиторий', true), sub('Проверить сайт', true), sub('Написать сопроводительный текст')] },
+    { text: 'Изучить анимации интерфейса', tag: 'study', priority: 'med', status: 'doing', due: iso(3),
+      notes: 'Разобрать переходы состояний и поддержку reduced motion.',
+      subtasks: [sub('Посмотреть примеры', true), sub('Сделать небольшой прототип')] },
+    { text: 'Спланировать выходные', tag: 'home', priority: 'low', status: 'doing', due: iso(5),
+      notes: 'Оставить время на прогулку, отдых и одно небольшое личное дело.' },
+    { text: 'Собрать референсы интерфейса', tag: 'work', priority: 'med', status: 'done', doneAt: completed(0),
+      subtasks: [sub('Выбрать три направления', true), sub('Собрать палитру', true)] },
+    { text: 'Настроить сохранение задач', tag: 'work', priority: 'high', status: 'done', doneAt: completed(0),
+      notes: 'Проверить восстановление списка после перезагрузки страницы.' },
+    { text: 'Составить план на неделю', tag: 'home', priority: 'med', status: 'done', doneAt: completed(1),
+      notes: 'Выбрать три главных результата и распределить небольшие дела.' },
+    { text: 'Повторить методы массивов', tag: 'study', priority: 'med', status: 'done', doneAt: completed(2),
+      subtasks: [sub('Повторить map и filter', true), sub('Решить задачу с reduce', true)] },
+    { text: 'Подготовить README проекта', tag: 'work', priority: 'med', status: 'done', doneAt: completed(3),
+      notes: 'Добавить запуск, основные возможности и использованные инструменты.' },
+    { text: 'Проверить важные ссылки', tag: 'urgent', priority: 'high', status: 'done', doneAt: completed(4),
+      notes: 'Убедиться, что сайт и репозиторий открываются без авторизации.' },
+    { text: 'Навести порядок в заметках', tag: 'home', priority: 'low', status: 'done', doneAt: completed(5),
+      notes: 'Сохранить полезные идеи и убрать устаревшие черновики.' },
+    { text: 'Пройти урок по доступности', tag: 'study', priority: 'med', status: 'done', doneAt: completed(6),
+      subtasks: [sub('Проверить контраст', true), sub('Пройти интерфейс клавиатурой', true)] },
+  ].map((task, index) => {
+    const id = `digitaltodo-demo-v1-${String(index + 1).padStart(2, '0')}`;
+    return normalize({
+      ...task,
+      id,
+      notes: `Пример задачи для знакомства с Digital To-Do. ${task.notes || 'Можно изменить, перенести или удалить этот пример.'}`,
+      subtasks: (task.subtasks || []).map((item, subIndex) => ({ ...item, id: `${id}-sub-${subIndex + 1}` })),
+      createdAt: now - (index + 9) * day,
+    });
+  });
 }

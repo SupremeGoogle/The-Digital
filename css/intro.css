@@ -1,0 +1,77 @@
+/* Digital To-Do identity: a dimensional D, a check and two digital pixels. */
+.brand .digital-mark {
+  width: 48px;
+  height: 48px;
+  background: none;
+  border-radius: 0;
+  box-shadow: none;
+  transform: none;
+}
+.brand .digital-mark::after { display: none; }
+.digital-mark img { display: block; width: 100%; height: 100%; filter: drop-shadow(0 4px 3px #477eb52b); }
+.brand .digital-wordmark { font: 900 25px/1.02 var(--display, "Nunito", system-ui); letter-spacing: -.055em; }
+.digital-wordmark > span { display: block; color: var(--blue, #2864df); font-size: 19px; letter-spacing: .005em; }
+
+.dtd-intro {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 50% 43%, #fbfdff, #eaf4ff 55%, #d7eaff);
+  transition: opacity 300ms ease, visibility 300ms ease;
+}
+.dtd-intro-halo {
+  position: absolute;
+  width: min(68vw, 550px);
+  aspect-ratio: 1;
+  border: 1px solid #fff;
+  border-radius: 50%;
+  box-shadow: inset 4px 4px 24px #bed5f140, 10px 15px 30px #a7c6e921;
+  opacity: .65;
+  transform: scale(.85);
+  animation: dtd-halo 1700ms cubic-bezier(.2,.7,.2,1) both;
+}
+.dtd-intro-halo::before, .dtd-intro-halo::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+}
+.dtd-intro-halo::before { width: 25px; height: 25px; top: 13%; right: 10%; background: linear-gradient(145deg,#fff1bc,#f3cb63); box-shadow: 3px 5px 10px #d1b66c35; }
+.dtd-intro-halo::after { width: 18px; height: 18px; bottom: 18%; left: 8%; background: linear-gradient(145deg,#d7f8ea,#91d3ba); box-shadow: 3px 4px 9px #72b19c30; }
+.dtd-intro-content { position: relative; display: grid; justify-items: center; padding: 30px; }
+.dtd-intro-logo { width: 104px; height: 104px; overflow: visible; filter: drop-shadow(0 10px 9px #4d83bd22); }
+.dtd-intro-d { transform-origin: 50% 70%; animation: dtd-mark 620ms cubic-bezier(.18,.85,.3,1.1) both; }
+.dtd-intro-counter { animation: dtd-opacity 300ms 150ms both; }
+.dtd-intro-check { stroke-dasharray: 1; stroke-dashoffset: 1; animation: dtd-check 950ms 350ms cubic-bezier(.4,0,.2,1) forwards; }
+.dtd-intro-pixel { transform-box: fill-box; transform-origin: center; animation: dtd-pixel 450ms cubic-bezier(.2,.8,.2,1.25) both; }
+.dtd-intro-pixel-one { animation-delay: 220ms; }
+.dtd-intro-pixel-two { animation-delay: 350ms; }
+.dtd-intro-name { margin-top: 20px; font: 900 clamp(29px,5vw,38px)/1.1 var(--display,"Nunito",system-ui); color: #162c60; letter-spacing: -.06em; animation: dtd-type 440ms 150ms both; }
+.dtd-intro-name span { color: #2864df; }
+.dtd-intro-caption { margin: 10px 0 28px; color: #536e98; font: 600 13px/1.5 var(--font,"Manrope",system-ui); animation: dtd-type 400ms 240ms both; }
+.dtd-intro-progress { width: 104px; height: 4px; overflow: hidden; border-radius: 5px; background: #d8e7f9; box-shadow: inset 1px 1px 2px #adc3df77; }
+.dtd-intro-progress span { display: block; width: 100%; height: 100%; transform-origin: left; border-radius: inherit; background: linear-gradient(90deg,#92c8ff,#3673e2); animation: dtd-progress 2150ms cubic-bezier(.2,.7,.2,1) both; }
+.dtd-intro-playing .app { opacity: 0; transform: translateY(8px); }
+.dtd-intro-reveal .app { transition: opacity 360ms ease, transform 420ms cubic-bezier(.2,.7,.2,1); }
+.dtd-intro-leaving { opacity: 0; visibility: hidden; }
+@keyframes dtd-mark { from { opacity: 0; transform: translateY(14px) rotate(-9deg) scale(.85); } to { opacity: 1; transform: none; } }
+@keyframes dtd-check { to { stroke-dashoffset: 0; } }
+@keyframes dtd-opacity { from { opacity: 0; } to { opacity: 1; } }
+@keyframes dtd-pixel { from { opacity: 0; transform: translateY(-12px) rotate(25deg) scale(.4); } to { opacity: 1; transform: none; } }
+@keyframes dtd-type { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes dtd-progress { from { transform: scaleX(.03); } to { transform: scaleX(1); } }
+@keyframes dtd-halo { to { transform: scale(1); } }
+@media (max-width: 640px) {
+  .brand .digital-mark { width: 41px; height: 41px; }
+  .brand .digital-wordmark { display: none; }
+  .dtd-intro-logo { width: 90px; height: 90px; }
+  .dtd-intro-halo { width: 310px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dtd-intro { display: none; }
+  .dtd-intro-playing .app { opacity: 1; transform: none; }
+  .dtd-intro-reveal .app { transition: none; }
+}

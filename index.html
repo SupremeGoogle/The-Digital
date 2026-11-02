@@ -1,21 +1,28 @@
 <!doctype html>
-<html lang="ru" data-theme="dark">
+<html lang="ru" data-theme="light">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Taskflow — список задач</title>
+  <title>Digital To-Do — ваш день в порядке</title>
   <meta name="description" content="To-Do List с 3D-дашбордом, канбаном и drag & drop. Задачи сохраняются в браузере.">
-  <meta name="theme-color" content="#05050a">
+  <meta name="theme-color" content="#eaf4ff">
+  <meta name="assistant-endpoint" content="">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Unbounded:wght@600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/sky.css">
+  <link rel="stylesheet" href="css/intro.css">
+  <link rel="stylesheet" href="css/assistant.css">
+  <link rel="stylesheet" href="css/task-effects.css">
+  <link rel="stylesheet" href="css/calendar.css">
+  <link rel="stylesheet" href="css/reminders.css">
   <script>
     // Тема ставится до отрисовки, чтобы не было вспышки
     try {
-      var t = localStorage.getItem('taskflow.theme');
-      if (t) document.documentElement.dataset.theme = t;
+      var t = localStorage.getItem('taskflow.sky.theme');
+      if (t === 'light' || t === 'dark') document.documentElement.dataset.theme = t;
     } catch (e) {}
   </script>
   <script type="importmap">
@@ -32,13 +39,13 @@
 
   <div class="app">
     <header class="topbar">
-      <a class="brand" href="./" aria-label="Taskflow">
-        <span class="mark" aria-hidden="true"></span>
-        <span class="wordmark">taskflow</span>
+      <a class="brand" href="./" aria-label="Digital To-Do — главная">
+        <span class="mark digital-mark" aria-hidden="true"><img src="favicon.svg" alt="" width="48" height="48"></span>
+        <span class="wordmark digital-wordmark">Digital <span>To-Do</span></span>
       </a>
       <div class="greeting">
         <span class="eyebrow" id="today"></span>
-        <h1>Мои задачи</h1>
+        <h1>Мой день</h1>
       </div>
       <label class="search">
         <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
@@ -52,39 +59,9 @@
       </button>
     </header>
 
-    <main>
-      <!-- Дашборд -->
-      <section class="dash">
-        <div class="scene card" id="scene">
-          <div class="scene-canvas"></div>
-          <div class="scene-hud">
-            <div class="hud-title">
-              <span class="live-dot"></span>
-              <span>Поток задач в 3D</span>
-            </div>
-            <div class="hud-views" role="group" aria-label="Камера">
-              <button class="hud-btn is-active" data-view="overview">Обзор</button>
-              <button class="hud-btn" data-view="top">Сверху</button>
-              <button class="hud-btn" data-view="front">Фронт</button>
-              <button class="hud-btn" data-view="side">Сбоку</button>
-            </div>
-          </div>
-          <div class="scene-tools">
-            <button class="hud-btn" id="rotateBtn" aria-pressed="true" title="Автовращение">
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.3-5.7M20 4v4h-4"/></svg>
-              <span>Вращение</span>
-            </button>
-            <button class="hud-btn" id="replayBtn" title="Повторить путь выполненных задач">
-              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5v14l11-7z"/></svg>
-              <span>Повтор</span>
-            </button>
-          </div>
-          <p class="scene-hint">Тяните фон, чтобы вращать. Перетащите куб на другой этаж, чтобы сменить статус</p>
-          <div class="scene-tip" hidden><strong class="tip-title"></strong><span class="tip-meta"></span></div>
-          <div class="scene-fallback" hidden>3D недоступно в этом браузере, но всё остальное работает.</div>
-        </div>
-
-        <div class="side">
+<main class="workspace">
+<div class="work-area">
+<div class="side">
           <div class="progress card tilt">
             <div class="progress-head">
               <span class="label">Прогресс</span>
@@ -95,47 +72,23 @@
             <p class="progress-sub" id="progressSub"></p>
           </div>
           <div class="kpis">
-            <div class="kpi card tilt tone-cyan"><span class="label">Всего</span><strong data-kpi="all">0</strong><span class="kpi-foot">задач</span></div>
-            <div class="kpi card tilt tone-orange"><span class="label">В работе</span><strong data-kpi="doing">0</strong><span class="kpi-foot" id="kpiDoingFoot">сейчас</span></div>
-            <div class="kpi card tilt tone-lime"><span class="label">Сделано</span><strong data-kpi="today">0</strong><span class="kpi-foot">сегодня</span></div>
-            <div class="kpi card tilt tone-pink"><span class="label">Просрочено</span><strong data-kpi="overdue">0</strong><span class="kpi-foot">требуют внимания</span></div>
+            <div class="kpi card tilt tone-cyan"><span class="kpi-art art-stack" aria-hidden="true"><i></i><i></i><i></i></span><span class="label">Всего задач</span><strong data-kpi="all">0</strong><span class="kpi-foot">в вашем списке</span></div>
+            <div class="kpi card tilt tone-orange"><span class="kpi-art art-ring" aria-hidden="true"></span><span class="label">В работе</span><strong data-kpi="doing">0</strong><span class="kpi-foot" id="kpiDoingFoot">сейчас</span></div>
+            <div class="kpi card tilt tone-lime"><span class="kpi-art art-check" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m5 12 4.5 4.5L19 7"/></svg></span><span class="label">Сделано</span><strong data-kpi="today">0</strong><span class="kpi-foot">сегодня</span></div>
+            <div class="kpi card tilt tone-pink"><span class="kpi-art art-clock" aria-hidden="true"></span><span class="label">Просрочено</span><strong data-kpi="overdue">0</strong><span class="kpi-foot">ждут внимания</span></div>
           </div>
         </div>
-      </section>
-
-      <section class="insights">
-        <div class="chart card">
-          <div class="card-head">
-            <h2>Активность за неделю</h2>
-            <span class="label" id="weekTotal"></span>
-          </div>
-          <div class="bars" id="bars"></div>
-        </div>
-        <div class="donut-card card">
-          <div class="card-head"><h2>По меткам</h2></div>
-          <div class="donut-wrap">
-            <svg class="donut" id="donut" viewBox="0 0 120 120" aria-hidden="true"></svg>
-            <div class="donut-center"><strong id="donutTotal">0</strong><span>активных</span></div>
-          </div>
-          <ul class="legend" id="legend"></ul>
-        </div>
-        <div class="deadlines card">
-          <div class="card-head"><h2>Ближайшие сроки</h2></div>
-          <ul class="dl-list" id="deadlines"></ul>
-        </div>
-      </section>
-
-      <!-- Ввод -->
-      <form class="composer card" id="composer" autocomplete="off">
+<form class="composer card" id="composer" autocomplete="off">
+        <div class="composer-title"><h2>Что сделаем дальше?</h2><span>Одно маленькое дело — ещё один шаг вперёд</span></div>
         <div class="composer-row">
           <label class="sr-only" for="taskInput">Новая задача</label>
-          <input id="taskInput" type="text" maxlength="200" placeholder="Новая задача… например: Сдать отчёт #работа ! завтра">
+          <input id="taskInput" type="text" maxlength="200" placeholder="Например, подготовить презентацию #работа завтра">
           <button class="btn-primary" type="submit">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
             <span>Добавить</span>
           </button>
         </div>
-        <div class="composer-opts">
+        <details class="composer-advanced"><summary>Метка, приоритет и срок</summary><div class="composer-opts">
           <fieldset class="seg tags" aria-label="Метка">
             <legend class="sr-only">Метка</legend>
             <label class="tag-opt"><input type="radio" name="tag" value="work" checked><span class="chip tag-work">Работа</span></label>
@@ -155,12 +108,10 @@
             <input type="date" id="dueInput">
           </label>
         </div>
-        <div class="parse-preview" id="parsePreview" aria-live="polite"></div>
         <p class="syntax">Быстрый ввод: <code>#личное</code> метка, <code>!</code> высокий приоритет, <code>~</code> низкий, <code>сегодня</code> <code>завтра</code> <code>в пт</code> <code>25.12</code> срок</p>
+</details><div class="parse-preview" id="parsePreview" aria-live="polite"></div>
       </form>
-
-      <!-- Фильтры -->
-      <div class="toolbar">
+<div class="toolbar">
         <div class="pills" id="tagFilter" role="group" aria-label="Фильтр по метке">
           <button class="pill is-active" data-tag="all">Все</button>
           <button class="pill" data-tag="work"><i class="dot tag-work"></i>Работа</button>
@@ -168,15 +119,13 @@
           <button class="pill" data-tag="study"><i class="dot tag-study"></i>Учёба</button>
           <button class="pill" data-tag="urgent"><i class="dot tag-urgent"></i>Срочно</button>
         </div>
-        <div class="toolbar-right">
+        <div class="toolbar-right"><div class="view-switch" role="group" aria-label="Вид задач"><button class="view-button is-active" type="button" data-layout="board" aria-pressed="true">Доска</button><button class="view-button" type="button" data-layout="list" aria-pressed="false">Список</button><button class="view-button" type="button" data-layout="calendar" aria-pressed="false">Календарь</button></div><details class="board-actions"><summary>Ещё</summary><div class="board-actions-menu"><button class="btn-ghost" id="demoBtn" type="button" title="Добавить примерные задачи, сохранив ваши">Добавить примеры</button>
           <button class="btn-ghost" id="clearDone" type="button">Очистить готовые</button>
-        </div>
+        </div></details></div>
       </div>
-
-      <!-- Канбан -->
-      <section class="board" id="board" aria-label="Канбан">
+<section class="board" id="board" aria-label="Канбан">
         <div class="col" data-status="todo">
-          <header class="col-head"><i class="col-dot"></i><h3>К выполнению</h3><span class="count" data-count="todo">0</span></header>
+          <header class="col-head"><i class="col-dot"></i><h3>Запланировано</h3><span class="count" data-count="todo">0</span></header>
           <ul class="col-list" data-status="todo"></ul>
         </div>
         <div class="col" data-status="doing">
@@ -189,11 +138,51 @@
         </div>
       </section>
 
+      <section id="calendar" class="calendar card" hidden aria-label="Календарь задач"></section>
       <p class="hint">Перетаскивайте карточки мышью или пальцем (удержание). С клавиатуры: <kbd>Alt</kbd> + стрелки. <kbd>N</kbd> новая задача, <kbd>Ctrl Z</kbd> отменить удаление</p>
-    </main>
+<section class="insights" aria-label="Ваша статистика">
+<div class="chart card">
+          <div class="card-head">
+            <h2>Активность за неделю</h2>
+            <span class="label" id="weekTotal"></span>
+          </div>
+          <div class="bars" id="bars"></div>
+        </div>
+        <div class="donut-card card">
+          <div class="card-head"><h2>По меткам</h2></div>
+          <div class="donut-wrap">
+            <svg class="donut" id="donut" viewBox="0 0 120 120" aria-hidden="true"></svg>
+            <div class="donut-center"><strong id="donutTotal">0</strong><span>активных</span></div>
+          </div>
+          <ul class="legend" id="legend"></ul>
+        </div>
+</section>
+</div>
+<aside class="work-aside" aria-label="Обзор и ближайшие сроки">
+<div class="scene card" id="scene">
+          <div class="scene-canvas"></div><button class="scene-expand" id="expandScene" type="button" aria-label="Развернуть 3D-обзор" aria-expanded="false" title="Развернуть 3D-обзор"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H3v5m13-5h5v5M3 16v5h5m13-5v5h-5"/></svg></button>
+          <div class="scene-hud">
+            <div class="hud-title">
+              <span class="live-dot"></span>
+              <span>Маленький мир задач</span>
+            </div>
+
+          </div>
+          <p class="scene-hint">Вращайте фон. Переносите кубы между платформами, чтобы менять статус</p>
+          <div class="scene-tip" hidden><strong class="tip-title"></strong><span class="tip-meta"></span></div>
+          <div class="scene-fallback" hidden>3D недоступно в этом браузере, но всё остальное работает.</div>
+        </div>
+<p class="aside-note">Каждый куб — ваша задача. Маленькие шаги складываются в большие дела.</p>
+<div class="deadlines card">
+          <div class="card-head"><h2>Ближайшие сроки</h2></div>
+          <ul class="dl-list" id="deadlines"></ul>
+        </div>
+<div class="aside-shortcuts"><h2>Всё под рукой</h2><p><kbd>N</kbd> Новая задача</p><p><kbd>Ctrl K</kbd> Поиск по задачам</p><p><kbd>Alt</kbd> + стрелки — сменить статус</p><p>Нажмите на карточку, чтобы открыть детали, заметки и подзадачи.</p></div>
+</aside>
+</main>
 
     <footer class="footer">
-      Сделано с помощью <a href="https://claude.com/claude-code" target="_blank" rel="noopener">Claude Code</a> · 3D на <a href="https://threejs.org" target="_blank" rel="noopener">Three.js</a>
+      Digital To-Do · Создано с помощью <a href="https://claude.com/claude-code" target="_blank" rel="noopener">Claude Code</a> и <a href="https://openai.com/codex/" target="_blank" rel="noopener">Codex</a>
     </footer>
   </div>
 
@@ -275,6 +264,7 @@
     <li class="card-item" tabindex="0">
       <span class="ci-accent" aria-hidden="true"></span>
       <div class="ci-top">
+        <button class="ci-start" type="button" aria-label="Взять задачу в работу"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg></button>
         <label class="check">
           <input type="checkbox" tabindex="-1">
           <span class="box" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>

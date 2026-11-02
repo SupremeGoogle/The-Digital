@@ -72,6 +72,10 @@ function fill(li, task) {
   li.style.setProperty('--c', `var(--tag-${task.tag})`);
   li.classList.toggle('done', task.status === 'done');
   li.querySelector('input[type="checkbox"]').checked = task.status === 'done';
+  li.querySelector('.check').hidden = task.status === 'todo';
+  const startButton = li.querySelector('.ci-start');
+  startButton.hidden = task.status !== 'todo';
+  startButton.setAttribute('aria-label', `Взять в работу: ${task.text}`);
   li.querySelector('.ci-text').textContent = task.text;
 
   const flag = li.querySelector('.flag');
@@ -131,6 +135,11 @@ function flip(mutate) {
 function onClick(e) {
   if (suppressClick) return;
   const card = e.target.closest('.card-item');
+  if (card && e.target.closest('.ci-start')) {
+    store.move(card.dataset.id, 'doing');
+    opts.announce?.('Задача взята в работу');
+    return;
+  }
   if (!card || e.target.closest('.check')) return;
   opts.onOpen?.(card.dataset.id);
 }
@@ -155,7 +164,8 @@ function onKey(e) {
     opts.onOpen?.(id);
   } else if (e.key === ' ') {
     e.preventDefault();
-    store.toggleDone(id);
+    if (task.status === 'todo') store.move(id, 'doing');
+    else store.toggleDone(id);
   } else if (e.key === 'Delete' || e.key === 'Backspace') {
     e.preventDefault();
     opts.onDelete?.(id);
@@ -190,7 +200,7 @@ function onKey(e) {
 function onDown(e) {
   if (e.button !== 0 || drag) return;
   const card = e.target.closest('.card-item');
-  if (!card || e.target.closest('.check')) return;
+  if (!card || e.target.closest('.check, .ci-start')) return;
 
   drag = { card, id: card.dataset.id, x0: e.clientX, y0: e.clientY, x: e.clientX, y: e.clientY, touch: e.pointerType !== 'mouse', started: false };
   if (drag.touch) {
@@ -261,7 +271,17 @@ function retarget() {
   trash.classList.toggle('is-armed', drag.overTrash);
 
   board.querySelectorAll('.col').forEach((c) => c.classList.remove('is-over'));
-  const col = el?.closest('.col');
+  let col = el?.closest('.col');
+  // Пустая область под короткой колонкой тоже принимает карточки.
+  if (!col && !overTrash) {
+    const rect = board.getBoundingClientRect();
+    if (y >= rect.top && y <= rect.bottom + 28) {
+      col = [...board.querySelectorAll('.col')].find((candidate) => {
+        const bounds = candidate.getBoundingClientRect();
+        return x >= bounds.left && x <= bounds.right;
+      });
+    }
+  }
   if (!col || overTrash) return;
   col.classList.add('is-over');
   const list = col.querySelector('.col-list');

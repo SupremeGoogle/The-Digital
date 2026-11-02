@@ -50,6 +50,7 @@ CORS_ORIGIN=https://supremegoogle.github.io
 AI_BASE_URL=https://routerai.ru/api/v1
 AI_MODEL=openai/gpt-4.1-mini
 AI_API_KEY=ENTER_REAL_KEY_ON_SERVER_ONLY
+TELEGRAM_BOT_TOKEN=ENTER_REAL_TOKEN_ON_SERVER_ONLY
 MAX_REQUESTS_PER_MINUTE=8
 MAX_DAILY_REQUESTS=200
 TRUST_PROXY=true
@@ -83,6 +84,8 @@ PrivateTmp=true
 ProtectSystem=strict
 ProtectHome=true
 ReadOnlyPaths=/opt/digital-todo
+StateDirectory=digital-todo
+StateDirectoryMode=0700
 UMask=0077
 
 [Install]
@@ -114,12 +117,21 @@ server {
 
     location = /api/assistant {
         proxy_pass http://127.0.0.1:8787;
+        proxy_buffering off;
+        proxy_cache off;
         proxy_http_version 1.1;
         proxy_set_header Host $host;
         proxy_set_header X-Forwarded-For $remote_addr;
         proxy_set_header X-Forwarded-Proto $scheme;
         proxy_read_timeout 25s;
         proxy_connect_timeout 5s;
+    }
+
+    location /api/telegram/ {
+        proxy_pass http://127.0.0.1:8787;
+        proxy_set_header Host $host;
+        proxy_set_header X-Forwarded-For $remote_addr;
+        proxy_read_timeout 15s;
     }
 
     location / { return 404; }

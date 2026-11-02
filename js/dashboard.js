@@ -6,6 +6,7 @@ import { dueInfo } from './parse.js';
 const $ = (s) => document.querySelector(s);
 const TAG_COLOR_VARS = { work: 'var(--cyan)', home: 'var(--violet)', study: 'var(--orange)', urgent: 'var(--pink)' };
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const countAnimations = new WeakMap();
 
 export function initDashboard({ onOpen }) {
   initTilt();
@@ -146,6 +147,7 @@ function renderDeadlines(tasks) {
 // ---------- счётчики ----------
 function countTo(el, value) {
   if (!el) return;
+  cancelAnimationFrame(countAnimations.get(el));
   const from = Number(el.dataset.value ?? 0);
   el.dataset.value = value;
   if (from === value || reduceMotion) {
@@ -154,11 +156,11 @@ function countTo(el, value) {
   }
   const start = performance.now();
   const step = (now) => {
-    const k = Math.min((now - start) / 600, 1);
+    const k = Math.max(0, Math.min((now - start) / 600, 1));
     el.textContent = Math.round(from + (value - from) * (1 - Math.pow(1 - k, 3)));
-    if (k < 1) requestAnimationFrame(step);
+    if (k < 1) countAnimations.set(el, requestAnimationFrame(step));
   };
-  requestAnimationFrame(step);
+  countAnimations.set(el, requestAnimationFrame(step));
   el.classList.remove('bump');
   void el.offsetWidth;
   el.classList.add('bump');

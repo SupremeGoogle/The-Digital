@@ -43,7 +43,11 @@ export function initDrawer(options) {
     const b = e.target.closest('[data-prio]');
     if (b) store.update(currentId, { priority: b.dataset.prio });
   });
-  $('#drawerDone').addEventListener('click', () => store.toggleDone(currentId));
+  $('#drawerDone').addEventListener('click', () => {
+    const task = store.get(currentId);
+    if (task?.status === 'todo' || task?.status === 'done') store.move(currentId, 'doing');
+    else store.toggleDone(currentId);
+  });
   $('#drawerDelete').addEventListener('click', () => {
     const id = currentId;
     close();
@@ -131,7 +135,7 @@ function sync(full = false) {
   setActive('#drawerStatus', 'status', task.status);
   setActive('#drawerTags', 'tag', task.tag);
   setActive('#drawerPrio', 'prio', task.priority);
-  $('#drawerDone').textContent = task.status === 'done' ? 'Вернуть в работу' : 'Отметить готовой';
+  $('#drawerDone').textContent = task.status === 'todo' ? 'Взять в работу' : task.status === 'done' ? 'Вернуть в работу' : 'Завершить задачу';
 
   const total = task.subtasks.length;
   const done = task.subtasks.filter((s) => s.done).length;
